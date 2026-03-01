@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Idaratech — OpenRouter API Usage Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F8FAFC;color:#1E293B;line-height:1.7}
+.header{background:linear-gradient(135deg,#0F172A 0%,#1E1B4B 50%,#0F172A 100%);padding:32px 20px 28px;color:#fff}
+.mx{max-width:1060px;margin:0 auto}
+.brand{font-size:12px;color:#A78BFA;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+h1{font-size:24px;font-weight:800;line-height:1.2}
+.sub{font-size:13px;color:#94A3B8;margin-top:6px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:18px}
+.kpi{background:rgba(255,255,255,.06);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,.08)}
+.kpi-l{font-size:11px;color:#94A3B8;margin-bottom:2px}
+.kpi-v{font-size:20px;font-weight:800;color:#F0FDFA}
+.kpi-v.cost{color:#A78BFA}
+.tab-nav{background:#fff;border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:10;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-inner{max-width:1060px;margin:0 auto;display:flex;padding:0 12px}
+.tb{padding:13px 14px;font-size:13px;font-weight:500;color:#64748B;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s}
+.tb.active{font-weight:700;color:#7C3AED;border-bottom-color:#7C3AED}
+.tb:hover{color:#7C3AED}
+.content{max-width:1060px;margin:0 auto;padding:24px 20px 60px}
+.tc{display:none}.tc.active{display:block}
+h2{font-size:19px;font-weight:800;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #E2E8F0}
+h3{font-size:15px;font-weight:700;margin:18px 0 10px}
+p{color:#475569;margin-bottom:14px;font-size:14px;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+th{text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:11px;border-bottom:2px solid #E2E8F0;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 12px;color:#1E293B;border-bottom:1px solid #F1F5F9}
+tr:hover td{background:#F8FAFC}
+.b{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.b-green{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
+.b-blue{background:#DBEAFE;color:#1E40AF;border:1px solid #93C5FD}
+.b-purple{background:#EDE9FE;color:#5B21B6;border:1px solid #C4B5FD}
+.b-yellow{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.b-red{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+.b-gray{background:#F3F4F6;color:#374151;border:1px solid #D1D5DB}
+.b-cyan{background:#ECFEFF;color:#155E75;border:1px solid #67E8F9}
+.b-orange{background:#FFF7ED;color:#9A3412;border:1px solid #FDBA74}
+.card{background:#fff;border-radius:14px;border:1px solid #E2E8F0;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;color:#0F172A}
+.chart-container{position:relative;height:320px;margin-bottom:8px}
+.chart-container-sm{position:relative;height:260px;margin-bottom:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:768px){.g2,.g3{grid-template-columns:1fr}}
+.model-color{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.note{border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:13px}
+.note-info{background:#EEF2FF;border:1px solid #C7D2FE;color:#3730A3}
+.note-warn{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E}
+.note-success{background:#F0FDF4;border:1px solid #86EFAC;color:#065F46}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:16px;text-align:center}
+.stat-card .val{font-size:28px;font-weight:800;margin-bottom:2px}
+.stat-card .label{font-size:12px;color:#64748B}
+.bar-row{margin-bottom:10px}
+.bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.bar-label .n{font-weight:600}.bar-label .v{color:#64748B}
+.bar-track{height:24px;background:#F1F5F9;border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;min-width:2px;transition:width .6s ease}
+.footer{background:#0F172A;color:#94A3B8;padding:24px 20px;text-align:center;font-size:12px;margin-top:40px}
+.footer a{color:#A78BFA;text-decoration:none}
+.model-card{background:#fff;border-radius:14px;border:1px solid #E2E8F0;padding:20px;margin-bottom:16px;border-left:5px solid}
+.model-card .mc-name{font-size:18px;font-weight:800;margin-bottom:2px}
+.model-card .mc-sub{font-size:13px;color:#64748B;margin-bottom:12px}
+.mc-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}
+.mc-metric{background:#F8FAFC;border-radius:8px;padding:10px}
+.mc-metric .ml{font-size:10px;color:#94A3B8;margin-bottom:1px;text-transform:uppercase;letter-spacing:.5px}
+.mc-metric .mv{font-size:16px;font-weight:800}
+.pct-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:#F1F5F9;margin-top:8px}
+.pct-seg{height:100%;transition:width .4s}
+td.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+td.money{font-variant-numeric:tabular-nums;text-align:right;font-weight:700;color:#7C3AED}
+.savings{color:#059669;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="header">
+<div class="mx">
+  <img src="icon.svg" alt="Idaratech" style="height:40px;margin-bottom:8px">
+  <div class="brand">Idaratech · OpenRouter Analytics</div>
+  <h1>API Usage Analytics Report</h1>
+  <div class="sub">Benchmark period: Feb 23 – Mar 1, 2026 · 7 models · 19 providers · All requests via OpenRouter</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Total Requests</div><div class="kpi-v">736</div></div>
+    <div class="kpi"><div class="kpi-l">Total Cost</div><div class="kpi-v cost">$6.15</div></div>
+    <div class="kpi"><div class="kpi-l">Total Tokens</div><div class="kpi-v">2.25M</div></div>
+    <div class="kpi"><div class="kpi-l">Cache Savings</div><div class="kpi-v savings">-$0.15</div></div>
+    <div class="kpi"><div class="kpi-l">Models Tested</div><div class="kpi-v">7</div></div>
+    <div class="kpi"><div class="kpi-l">Providers Used</div><div class="kpi-v">19</div></div>
+    <div class="kpi"><div class="kpi-l">Avg Latency</div><div class="kpi-v">12.1s</div></div>
+    <div class="kpi"><div class="kpi-l">Cost / 1K Tokens</div><div class="kpi-v cost">$0.0027</div></div>
+  </div>
+</div>
+</div>
+
+<div class="tab-nav"><div class="tab-inner">
+  <button class="tb active" onclick="showTab('overview')">Overview</button>
+  <button class="tb" onclick="showTab('models')">Per Model</button>
+  <button class="tb" onclick="showTab('costs')">Cost Analysis</button>
+  <button class="tb" onclick="showTab('tokens')">Token Analysis</button>
+  <button class="tb" onclick="showTab('providers')">Providers</button>
+  <button class="tb" onclick="showTab('timeline')">Timeline</button>
+  <button class="tb" onclick="showTab('performance')">Performance</button>
+</div></div>
+
+<div class="content">
+
+<!-- ==================== TAB 1: OVERVIEW ==================== -->
+<div class="tc active" id="overview">
+<h2>Overview</h2>
+<p>Summary of all OpenRouter API activity during the AI SQL Chat benchmarking period. All 736 requests were streamed via a single API key across 7 models and 19 inference providers.</p>
+
+<div class="g2">
+<div class="card">
+  <div class="card-title">Cost Distribution by Model</div>
+  <div class="chart-container"><canvas id="costPieChart"></canvas></div>
+</div>
+<div class="card">
+  <div class="card-title">Requests Distribution by Model</div>
+  <div class="chart-container"><canvas id="reqsPieChart"></canvas></div>
+</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Model Summary</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr><th>Model</th><th style="text-align:right">Requests</th><th style="text-align:right">Cost</th><th style="text-align:right">% of Cost</th><th style="text-align:right">Prompt Tokens</th><th style="text-align:right">Completion Tokens</th><th style="text-align:right">Reasoning Tokens</th><th style="text-align:right">Avg Latency</th><th style="text-align:right">Avg TTFT</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="model-color" style="background:#8B5CF6"></span>Gemini 3.1 Pro</td><td class="num">281</td><td class="money">$3.8893</td><td class="num">63.3%</td><td class="num">638,360</td><td class="num">220,663</td><td class="num">183,048</td><td class="num">11.5s</td><td class="num">4,028ms</td></tr>
+      <tr><td><span class="model-color" style="background:#3B82F6"></span>Gemini 2.5 Pro</td><td class="num">117</td><td class="money">$1.7967</td><td class="num">29.2%</td><td class="num">364,994</td><td class="num">139,775</td><td class="num">125,725</td><td class="num">11.9s</td><td class="num">2,817ms</td></tr>
+      <tr><td><span class="model-color" style="background:#F59E0B"></span>Qwen 3 235B</td><td class="num">84</td><td class="money">$0.2378</td><td class="num">3.9%</td><td class="num">205,135</td><td class="num">79,378</td><td class="num">71,759</td><td class="num">23.7s</td><td class="num">916ms</td></tr>
+      <tr><td><span class="model-color" style="background:#10B981"></span>GPT 4.1</td><td class="num">52</td><td class="money">$0.1216</td><td class="num">2.0%</td><td class="num">75,844</td><td class="num">3,444</td><td class="num">0</td><td class="num">1.3s</td><td class="num">593ms</td></tr>
+      <tr><td><span class="model-color" style="background:#EF4444"></span>Qwen 3 32B</td><td class="num">100</td><td class="money">$0.0545</td><td class="num">0.9%</td><td class="num">256,607</td><td class="num">73,180</td><td class="num">70,118</td><td class="num">17.2s</td><td class="num">1,143ms</td></tr>
+      <tr><td><span class="model-color" style="background:#06B6D4"></span>MiniMax M2.5</td><td class="num">43</td><td class="money">$0.0346</td><td class="num">0.6%</td><td class="num">67,246</td><td class="num">15,029</td><td class="num">12,787</td><td class="num">7.5s</td><td class="num">1,539ms</td></tr>
+      <tr><td><span class="model-color" style="background:#94A3B8"></span>Gemma 3 27B</td><td class="num">59</td><td class="money">$0.0114</td><td class="num">0.2%</td><td class="num">103,873</td><td class="num">5,642</td><td class="num">0</td><td class="num">2.7s</td><td class="num">753ms</td></tr>
+    </tbody>
+    <tfoot style="font-weight:700;border-top:2px solid #E2E8F0">
+      <tr><td>TOTAL</td><td class="num">736</td><td class="money">$6.1459</td><td class="num">100%</td><td class="num">1,712,059</td><td class="num">537,111</td><td class="num">463,437</td><td class="num">12.1s</td><td class="num">—</td></tr>
+    </tfoot>
+  </table>
+  </div>
+</div>
+
+<div class="note note-info">
+  <strong>Key Insight:</strong> Google models (Gemini 2.5 Pro + 3.1 Pro) account for <strong>92.5%</strong> of total spend ($5.69 of $6.15) but also delivered the highest benchmark scores (88 and 84 respectively). The remaining 5 models combined cost only <strong>$0.46</strong>.
+</div>
+</div>
+
+<!-- ==================== TAB 2: PER MODEL ==================== -->
+<div class="tc" id="models">
+<h2>Per-Model Deep Dive</h2>
+
+<div class="model-card" style="border-color:#8B5CF6">
+  <div class="mc-name">Gemini 3.1 Pro Preview</div>
+  <div class="mc-sub">google/gemini-3.1-pro-preview-20260219 · 2 providers</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">281</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$3.89</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0138</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">638K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">221K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">183K</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">20K</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">11.5s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">4,028ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0045</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Providers: Google AI Studio (164 reqs, $2.19) · Google (117 reqs, $1.70). Most expensive model overall — consumed 63% of total budget. Tested across 4 benchmark days.</p>
+</div>
+
+<div class="model-card" style="border-color:#3B82F6">
+  <div class="mc-name">Gemini 2.5 Pro</div>
+  <div class="mc-sub">google/gemini-2.5-pro · 2 providers</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">117</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$1.80</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0154</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">365K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">140K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">126K</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">51K</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">11.9s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">2,817ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0036</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Providers: Google (98 reqs, $1.50) · Google AI Studio (19 reqs, $0.30). Highest cost per request ($0.0154) but also highest benchmark score (88/100). Best cache utilization (51K cached tokens).</p>
+</div>
+
+<div class="model-card" style="border-color:#F59E0B">
+  <div class="mc-name">Qwen 3 235B A22B</div>
+  <div class="mc-sub">qwen/qwen3-235b-a22b-04-28 · 1 provider (Alibaba)</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">84</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$0.24</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0028</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">205K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">79K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">72K</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">0</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">23.7s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">916ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0008</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Single provider (Alibaba). Slowest model at 23.7s average latency. No cache utilization. MoE architecture (235B total, 22B active).</p>
+</div>
+
+<div class="model-card" style="border-color:#10B981">
+  <div class="mc-name">GPT 4.1</div>
+  <div class="mc-sub">openai/gpt-4.1-2025-04-14 · 1 provider (OpenAI)</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">52</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$0.12</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0023</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">76K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">3K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">0</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">38K</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">1.3s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">593ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0015</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Fastest model (1.3s avg). Very concise outputs (only 3K completion tokens for 52 requests — avg 66 tokens/response). Excellent cache hit rate (50% of prompt tokens cached). No reasoning tokens.</p>
+</div>
+
+<div class="model-card" style="border-color:#EF4444">
+  <div class="mc-name">Qwen 3 32B</div>
+  <div class="mc-sub">qwen/qwen3-32b-04-28 · 7 providers</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">100</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$0.05</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0005</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">257K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">73K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">70K</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">0</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">17.2s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">1,143ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0002</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Most providers tested (7). Most cost-effective among capable models at $0.0002/1K tokens. Wide provider latency range: Groq (831ms) to SiliconFlow (32.8s).</p>
+</div>
+
+<div class="model-card" style="border-color:#06B6D4">
+  <div class="mc-name">MiniMax M2.5</div>
+  <div class="mc-sub">minimax/minimax-m2.5-20260211 · 11 providers</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">43</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$0.03</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0008</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">67K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">15K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">13K</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">14K</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">7.5s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">1,539ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0004</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Widest provider distribution (11 providers). Tested on a single day (Mar 1). MoE architecture (230B total, ~10B active). Good cache utilization (21% of prompt tokens).</p>
+</div>
+
+<div class="model-card" style="border-color:#94A3B8">
+  <div class="mc-name">Gemma 3 27B IT</div>
+  <div class="mc-sub">google/gemma-3-27b-it · 5 providers</div>
+  <div class="mc-metrics">
+    <div class="mc-metric"><div class="ml">Requests</div><div class="mv">59</div></div>
+    <div class="mc-metric"><div class="ml">Total Cost</div><div class="mv" style="color:#7C3AED">$0.01</div></div>
+    <div class="mc-metric"><div class="ml">Cost/Request</div><div class="mv">$0.0002</div></div>
+    <div class="mc-metric"><div class="ml">Prompt Tokens</div><div class="mv">104K</div></div>
+    <div class="mc-metric"><div class="ml">Completion</div><div class="mv">6K</div></div>
+    <div class="mc-metric"><div class="ml">Reasoning</div><div class="mv">0</div></div>
+    <div class="mc-metric"><div class="ml">Cached</div><div class="mv">4K</div></div>
+    <div class="mc-metric"><div class="ml">Avg Latency</div><div class="mv">2.7s</div></div>
+    <div class="mc-metric"><div class="ml">Avg TTFT</div><div class="mv">753ms</div></div>
+    <div class="mc-metric"><div class="ml">Cost/1K tok</div><div class="mv">$0.0001</div></div>
+  </div>
+  <p style="margin:0;font-size:13px;color:#64748B">Cheapest model overall ($0.01 total). Very fast (2.7s avg). No reasoning tokens. Very concise outputs (avg 96 tokens/response). Tested on a single day (Feb 27).</p>
+</div>
+</div>
+
+<!-- ==================== TAB 3: COST ANALYSIS ==================== -->
+<div class="tc" id="costs">
+<h2>Cost Analysis</h2>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="val" style="color:#7C3AED">$6.15</div><div class="label">Total Spend</div></div>
+  <div class="stat-card"><div class="val" style="color:#059669">-$0.15</div><div class="label">Cache Savings</div></div>
+  <div class="stat-card"><div class="val">$0.0084</div><div class="label">Avg Cost / Request</div></div>
+  <div class="stat-card"><div class="val">$0.0027</div><div class="label">Avg Cost / 1K Tokens</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Cost Breakdown by Model</div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Gemini 3.1 Pro</span><span class="v">$3.89 (63.3%)</span></div><div class="bar-track"><div class="bar-fill" style="width:63.3%;background:#8B5CF6">$3.89</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Gemini 2.5 Pro</span><span class="v">$1.80 (29.2%)</span></div><div class="bar-track"><div class="bar-fill" style="width:29.2%;background:#3B82F6">$1.80</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Qwen 3 235B</span><span class="v">$0.24 (3.9%)</span></div><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#F59E0B"></div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">GPT 4.1</span><span class="v">$0.12 (2.0%)</span></div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#10B981"></div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Qwen 3 32B</span><span class="v">$0.05 (0.9%)</span></div><div class="bar-track"><div class="bar-fill" style="width:0.9%;background:#EF4444"></div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">MiniMax M2.5</span><span class="v">$0.03 (0.6%)</span></div><div class="bar-track"><div class="bar-fill" style="width:0.6%;background:#06B6D4"></div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Gemma 3 27B</span><span class="v">$0.01 (0.2%)</span></div><div class="bar-track"><div class="bar-fill" style="width:0.2%;background:#94A3B8"></div></div></div>
+</div>
+
+<div class="g2">
+<div class="card">
+  <div class="card-title">Cost per Request by Model</div>
+  <div class="chart-container"><canvas id="costPerReqChart"></canvas></div>
+</div>
+<div class="card">
+  <div class="card-title">Cost per 1K Tokens by Model</div>
+  <div class="chart-container"><canvas id="costPer1kChart"></canvas></div>
+</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Daily Cost Breakdown</div>
+  <div class="chart-container"><canvas id="dailyCostChart"></canvas></div>
+</div>
+
+<div class="note note-warn">
+  <strong>Cost Concentration:</strong> 92.5% of the total budget was spent on Google models. For production deployment, consider that Gemini 3.1 Pro costs <strong>27x more per 1K tokens</strong> than Qwen 3 32B and <strong>43x more</strong> than Gemma 3 27B.
+</div>
+</div>
+
+<!-- ==================== TAB 4: TOKEN ANALYSIS ==================== -->
+<div class="tc" id="tokens">
+<h2>Token Analysis</h2>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="val" style="color:#3B82F6">1.71M</div><div class="label">Prompt Tokens</div></div>
+  <div class="stat-card"><div class="val" style="color:#10B981">537K</div><div class="label">Completion Tokens</div></div>
+  <div class="stat-card"><div class="val" style="color:#F59E0B">463K</div><div class="label">Reasoning Tokens</div></div>
+  <div class="stat-card"><div class="val" style="color:#8B5CF6">127K</div><div class="label">Cached Tokens</div></div>
+</div>
+
+<div class="g2">
+<div class="card">
+  <div class="card-title">Token Type Distribution</div>
+  <div class="chart-container"><canvas id="tokenTypePie"></canvas></div>
+</div>
+<div class="card">
+  <div class="card-title">Tokens per Model</div>
+  <div class="chart-container"><canvas id="tokensPerModel"></canvas></div>
+</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Average Tokens per Request</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Model</th><th style="text-align:right">Avg Prompt</th><th style="text-align:right">Avg Completion</th><th style="text-align:right">Avg Reasoning</th><th style="text-align:right">Reasoning Ratio</th><th style="text-align:right">Cache Hit %</th></tr></thead>
+    <tbody>
+      <tr><td><span class="model-color" style="background:#8B5CF6"></span>Gemini 3.1 Pro</td><td class="num">2,271</td><td class="num">785</td><td class="num">651</td><td class="num">83%</td><td class="num">3.1%</td></tr>
+      <tr><td><span class="model-color" style="background:#3B82F6"></span>Gemini 2.5 Pro</td><td class="num">3,120</td><td class="num">1,195</td><td class="num">1,075</td><td class="num">90%</td><td class="num">13.9%</td></tr>
+      <tr><td><span class="model-color" style="background:#F59E0B"></span>Qwen 3 235B</td><td class="num">2,442</td><td class="num">945</td><td class="num">854</td><td class="num">90%</td><td class="num">0%</td></tr>
+      <tr><td><span class="model-color" style="background:#10B981"></span>GPT 4.1</td><td class="num">1,459</td><td class="num">66</td><td class="num">0</td><td class="num">0%</td><td class="num">50.6%</td></tr>
+      <tr><td><span class="model-color" style="background:#EF4444"></span>Qwen 3 32B</td><td class="num">2,566</td><td class="num">732</td><td class="num">701</td><td class="num">96%</td><td class="num">0%</td></tr>
+      <tr><td><span class="model-color" style="background:#06B6D4"></span>MiniMax M2.5</td><td class="num">1,564</td><td class="num">350</td><td class="num">297</td><td class="num">85%</td><td class="num">21.1%</td></tr>
+      <tr><td><span class="model-color" style="background:#94A3B8"></span>Gemma 3 27B</td><td class="num">1,761</td><td class="num">96</td><td class="num">0</td><td class="num">0%</td><td class="num">3.7%</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="note note-info">
+  <strong>Reasoning Tokens:</strong> 5 of 7 models used reasoning tokens. Qwen 3 32B has the highest reasoning ratio (96% — almost all completion tokens are reasoning). GPT 4.1 and Gemma 3 27B produced no reasoning tokens. GPT 4.1 had the best cache hit rate at 50.6%.
+</div>
+</div>
+
+<!-- ==================== TAB 5: PROVIDERS ==================== -->
+<div class="tc" id="providers">
+<h2>Provider Analysis</h2>
+<p>OpenRouter routes requests to 19 different inference providers. This analysis shows provider distribution, cost, and performance.</p>
+
+<div class="card">
+  <div class="card-title">Requests by Provider</div>
+  <div class="chart-container"><canvas id="providerChart"></canvas></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Provider Performance Comparison</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Provider</th><th style="text-align:right">Requests</th><th style="text-align:right">Cost</th><th>Models Served</th><th style="text-align:right">Avg Latency</th></tr></thead>
+    <tbody>
+      <tr><td>Google</td><td class="num">215</td><td class="money">$3.19</td><td><span class="b b-purple">Gemini 2.5 Pro</span> <span class="b b-purple">Gemini 3.1 Pro</span></td><td class="num">11,987ms</td></tr>
+      <tr><td>Google AI Studio</td><td class="num">183</td><td class="money">$2.49</td><td><span class="b b-purple">Gemini 2.5 Pro</span> <span class="b b-purple">Gemini 3.1 Pro</span></td><td class="num">11,180ms</td></tr>
+      <tr><td>Alibaba</td><td class="num">115</td><td class="money">$0.26</td><td><span class="b b-yellow">Qwen 3 235B</span> <span class="b b-red">Qwen 3 32B</span></td><td class="num">20,328ms</td></tr>
+      <tr><td>OpenAI</td><td class="num">52</td><td class="money">$0.12</td><td><span class="b b-green">GPT 4.1</span></td><td class="num">1,318ms</td></tr>
+      <tr><td>Nebius</td><td class="num">41</td><td class="money">$0.02</td><td><span class="b b-red">Qwen 3 32B</span> <span class="b b-gray">Gemma 3 27B</span></td><td class="num">14,699ms</td></tr>
+      <tr><td>DeepInfra</td><td class="num">38</td><td class="money">$0.01</td><td><span class="b b-red">Qwen 3 32B</span> <span class="b b-gray">Gemma 3 27B</span></td><td class="num">7,118ms</td></tr>
+      <tr><td>Novita</td><td class="num">19</td><td class="money">$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span> <span class="b b-red">Qwen 3 32B</span> <span class="b b-gray">Gemma 3 27B</span></td><td class="num">14,992ms</td></tr>
+      <tr><td>Parasail</td><td class="num">14</td><td class="money">$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span> <span class="b b-gray">Gemma 3 27B</span></td><td class="num">3,992ms</td></tr>
+      <tr><td>SiliconFlow</td><td class="num">13</td><td class="money">$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span> <span class="b b-red">Qwen 3 32B</span></td><td class="num">23,295ms</td></tr>
+      <tr><td>AtlasCloud</td><td class="num">12</td><td class="money">$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span> <span class="b b-red">Qwen 3 32B</span></td><td class="num">7,893ms</td></tr>
+      <tr><td>Phala</td><td class="num">8</td><td class="money">&lt;$0.01</td><td><span class="b b-gray">Gemma 3 27B</span></td><td class="num">4,134ms</td></tr>
+      <tr><td>Minimax</td><td class="num">6</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">7,507ms</td></tr>
+      <tr><td>Together</td><td class="num">4</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">4,136ms</td></tr>
+      <tr><td>Inceptron</td><td class="num">4</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">5,082ms</td></tr>
+      <tr><td>Friendli</td><td class="num">3</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">4,437ms</td></tr>
+      <tr><td>Clarifai</td><td class="num">3</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">9,728ms</td></tr>
+      <tr><td>Fireworks</td><td class="num">2</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">5,826ms</td></tr>
+      <tr><td>SambaNova</td><td class="num">2</td><td class="money">&lt;$0.01</td><td><span class="b b-cyan">MiniMax M2.5</span></td><td class="num">4,801ms</td></tr>
+      <tr><td>Groq</td><td class="num">2</td><td class="money">&lt;$0.01</td><td><span class="b b-red">Qwen 3 32B</span></td><td class="num">831ms</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="note note-success">
+  <strong>Fastest Providers:</strong> Groq (831ms avg), OpenAI (1,318ms), Nebius for Gemma (1,366ms). <strong>Slowest:</strong> SiliconFlow (23.3s), Alibaba (20.3s), Novita (15.0s).
+</div>
+</div>
+
+<!-- ==================== TAB 6: TIMELINE ==================== -->
+<div class="tc" id="timeline">
+<h2>Timeline</h2>
+
+<div class="card">
+  <div class="card-title">Requests per Day</div>
+  <div class="chart-container"><canvas id="dailyReqsChart"></canvas></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Daily Breakdown</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Date</th><th style="text-align:right">Requests</th><th style="text-align:right">Cost</th><th style="text-align:right">Tokens</th><th>Models Tested</th></tr></thead>
+    <tbody>
+      <tr><td>Feb 23 (Sun)</td><td class="num">139</td><td class="money">$1.81</td><td class="num">780,862</td><td>Gemini 2.5 Pro, Gemini 3.1 Pro, Qwen 235B, Qwen 32B</td></tr>
+      <tr><td>Feb 24 (Mon)</td><td class="num">143</td><td class="money">$1.27</td><td class="num">395,097</td><td>Gemini 3.1 Pro, Qwen 235B, Qwen 32B</td></tr>
+      <tr><td>Feb 27 (Thu)</td><td class="num">141</td><td class="money">$0.56</td><td class="num">304,957</td><td>Gemini 3.1 Pro, Gemma 27B, Qwen 32B</td></tr>
+      <tr><td>Feb 28 (Fri)</td><td class="num">270</td><td class="money">$2.47</td><td class="num">685,979</td><td>Gemini 2.5 Pro, Gemini 3.1 Pro, GPT 4.1, Qwen 235B, Qwen 32B</td></tr>
+      <tr><td>Mar 1 (Sat)</td><td class="num">43</td><td class="money">$0.03</td><td class="num">82,275</td><td>MiniMax M2.5</td></tr>
+    </tbody>
+    <tfoot style="font-weight:700;border-top:2px solid #E2E8F0">
+      <tr><td>Total</td><td class="num">736</td><td class="money">$6.15</td><td class="num">2,249,170</td><td>7 unique models</td></tr>
+    </tfoot>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Hourly Activity Distribution</div>
+  <div class="chart-container"><canvas id="hourlyChart"></canvas></div>
+</div>
+
+<div class="note note-info">
+  <strong>Peak Activity:</strong> Feb 28 was the busiest day (270 requests, $2.47) with 5 models tested simultaneously. The late-night hours (23:00–01:00) saw the heaviest activity with 385 requests (52% of total).
+</div>
+</div>
+
+<!-- ==================== TAB 7: PERFORMANCE ==================== -->
+<div class="tc" id="performance">
+<h2>Performance Analysis</h2>
+
+<div class="g2">
+<div class="card">
+  <div class="card-title">Average Generation Time (ms)</div>
+  <div class="chart-container"><canvas id="latencyChart"></canvas></div>
+</div>
+<div class="card">
+  <div class="card-title">Time to First Token (ms)</div>
+  <div class="chart-container"><canvas id="ttftChart"></canvas></div>
+</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Performance Comparison</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Model</th><th style="text-align:right">Avg Latency</th><th style="text-align:right">Avg TTFT</th><th style="text-align:right">Min TTFT</th><th style="text-align:right">Max TTFT</th><th style="text-align:right">Finish: stop</th><th style="text-align:right">Finish: tool_calls</th><th style="text-align:right">Finish: length</th></tr></thead>
+    <tbody>
+      <tr><td><span class="model-color" style="background:#10B981"></span>GPT 4.1</td><td class="num">1,318ms</td><td class="num">593ms</td><td class="num">410ms</td><td class="num">1,518ms</td><td class="num">38</td><td class="num">14</td><td class="num">0</td></tr>
+      <tr><td><span class="model-color" style="background:#94A3B8"></span>Gemma 3 27B</td><td class="num">2,650ms</td><td class="num">753ms</td><td class="num">109ms</td><td class="num">1,472ms</td><td class="num">59</td><td class="num">0</td><td class="num">0</td></tr>
+      <tr><td><span class="model-color" style="background:#06B6D4"></span>MiniMax M2.5</td><td class="num">7,532ms</td><td class="num">1,539ms</td><td class="num">285ms</td><td class="num">5,681ms</td><td class="num">43</td><td class="num">0</td><td class="num">0</td></tr>
+      <tr><td><span class="model-color" style="background:#8B5CF6"></span>Gemini 3.1 Pro</td><td class="num">11,470ms</td><td class="num">4,028ms</td><td class="num">1,895ms</td><td class="num">13,645ms</td><td class="num">245</td><td class="num">33</td><td class="num">3</td></tr>
+      <tr><td><span class="model-color" style="background:#3B82F6"></span>Gemini 2.5 Pro</td><td class="num">11,887ms</td><td class="num">2,817ms</td><td class="num">1,570ms</td><td class="num">9,067ms</td><td class="num">101</td><td class="num">16</td><td class="num">0</td></tr>
+      <tr><td><span class="model-color" style="background:#EF4444"></span>Qwen 3 32B</td><td class="num">17,201ms</td><td class="num">1,143ms</td><td class="num">153ms</td><td class="num">7,656ms</td><td class="num">100</td><td class="num">0</td><td class="num">0</td></tr>
+      <tr><td><span class="model-color" style="background:#F59E0B"></span>Qwen 3 235B</td><td class="num">23,724ms</td><td class="num">916ms</td><td class="num">410ms</td><td class="num">6,995ms</td><td class="num">84</td><td class="num">0</td><td class="num">0</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="g2">
+<div class="note note-success">
+  <strong>Tool Calls:</strong> Only GPT 4.1 (14 calls) and Gemini models (49 calls) used the tool_calls finish reason, indicating function calling capability was tested with these models.
+</div>
+<div class="note note-warn">
+  <strong>Length Truncation:</strong> Gemini 3.1 Pro had 3 responses truncated due to length limits. All other models completed within token limits.
+</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Qwen 3 32B — Provider Latency Comparison</div>
+  <p style="font-size:13px;color:#64748B;margin-bottom:12px">Same model, 7 different providers — shows how infrastructure affects latency.</p>
+  <div class="bar-row"><div class="bar-label"><span class="n">Groq</span><span class="v">831ms (2 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:2.5%;background:#10B981">831</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">AtlasCloud</span><span class="v">3,048ms (8 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:9.3%;background:#3B82F6">3,048</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Alibaba</span><span class="v">12,428ms (31 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:37.9%;background:#F59E0B">12,428</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">DeepInfra</span><span class="v">14,560ms (16 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:44.4%;background:#F97316">14,560</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Nebius</span><span class="v">21,607ms (27 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:66%;background:#EF4444">21,607</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">Novita</span><span class="v">28,241ms (7 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:86.2%;background:#DC2626">28,241</div></div></div>
+  <div class="bar-row"><div class="bar-label"><span class="n">SiliconFlow</span><span class="v">32,752ms (9 reqs)</span></div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#991B1B">32,752</div></div></div>
+</div>
+
+</div>
+
+</div><!-- /content -->
+
+<div class="footer">
+  <div class="mx">
+    <img src="icon.svg" alt="Idaratech" style="height:24px;margin-bottom:8px"><br>
+    <strong>Idaratech</strong> · OpenRouter API Usage Analytics<br>
+    Data exported March 1, 2026 · Generated from openrouter_activity_2026-03-01.csv (736 rows)
+  </div>
+</div>
+
+<script>
+const MC = {
+  'Gemini 3.1 Pro':'#8B5CF6','Gemini 2.5 Pro':'#3B82F6','Qwen 3 235B':'#F59E0B',
+  'GPT 4.1':'#10B981','Qwen 3 32B':'#EF4444','MiniMax M2.5':'#06B6D4','Gemma 3 27B':'#94A3B8'
+};
+const names = Object.keys(MC), colors = Object.values(MC);
+Chart.defaults.font.family = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#64748B';
+
+function showTab(id){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Cost Pie
+new Chart(document.getElementById('costPieChart'),{type:'doughnut',data:{labels:names,datasets:[{data:[3.8893,1.7967,0.2378,0.1216,0.0545,0.0346,0.0114],backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{padding:12,usePointStyle:true,pointStyle:'circle'}}}}});
+
+// Requests Pie
+new Chart(document.getElementById('reqsPieChart'),{type:'doughnut',data:{labels:names,datasets:[{data:[281,117,84,52,100,43,59],backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{padding:12,usePointStyle:true,pointStyle:'circle'}}}}});
+
+// Cost per request bar
+new Chart(document.getElementById('costPerReqChart'),{type:'bar',data:{labels:names,datasets:[{label:'$/request',data:[0.01384,0.01536,0.00283,0.00234,0.00055,0.00080,0.00019],backgroundColor:colors,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>'$'+v.toFixed(4)},grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}});
+
+// Cost per 1K tokens bar
+new Chart(document.getElementById('costPer1kChart'),{type:'bar',data:{labels:names,datasets:[{label:'$/1K tokens',data:[0.004528,0.003559,0.000836,0.001534,0.000165,0.000420,0.000104],backgroundColor:colors,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>'$'+v.toFixed(4)},grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}});
+
+// Daily cost stacked
+new Chart(document.getElementById('dailyCostChart'),{type:'bar',data:{labels:['Feb 23','Feb 24','Feb 27','Feb 28','Mar 1'],datasets:[
+  {label:'Gemini 3.1 Pro',data:[1.0714,1.1924,0.5275,1.0981,0],backgroundColor:'#8B5CF6'},
+  {label:'Gemini 2.5 Pro',data:[0.6626,0,0,1.1341,0],backgroundColor:'#3B82F6'},
+  {label:'Qwen 3 235B',data:[0.0569,0.0638,0,0.1171,0],backgroundColor:'#F59E0B'},
+  {label:'GPT 4.1',data:[0,0,0,0.1216,0],backgroundColor:'#10B981'},
+  {label:'Qwen 3 32B',data:[0.0177,0.0140,0.0199,0.0029,0],backgroundColor:'#EF4444'},
+  {label:'MiniMax M2.5',data:[0,0,0,0,0.0346],backgroundColor:'#06B6D4'},
+  {label:'Gemma 3 27B',data:[0,0,0.0114,0,0],backgroundColor:'#94A3B8'}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:v=>'$'+v.toFixed(2)},grid:{color:'#F1F5F9'}}}}});
+
+// Token type pie
+new Chart(document.getElementById('tokenTypePie'),{type:'doughnut',data:{labels:['Prompt','Completion (non-reasoning)','Reasoning','Cached'],datasets:[{data:[1712059,537111-463437,463437,127009],backgroundColor:['#3B82F6','#10B981','#F59E0B','#8B5CF6'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{padding:12,usePointStyle:true,pointStyle:'circle'}}}}});
+
+// Tokens per model stacked bar
+new Chart(document.getElementById('tokensPerModel'),{type:'bar',data:{labels:names,datasets:[
+  {label:'Prompt',data:[638360,364994,205135,75844,256607,67246,103873],backgroundColor:'#3B82F6'},
+  {label:'Completion',data:[220663,139775,79378,3444,73180,15029,5642],backgroundColor:'#10B981'},
+  {label:'Reasoning',data:[183048,125725,71759,0,70118,12787,0],backgroundColor:'#F59E0B'}
+]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12}}},scales:{x:{stacked:true,ticks:{callback:v=>(v/1000)+'K'},grid:{color:'#F1F5F9'}},y:{stacked:true,grid:{display:false}}}}});
+
+// Provider chart
+new Chart(document.getElementById('providerChart'),{type:'bar',data:{labels:['Google','Google AI Studio','Alibaba','OpenAI','Nebius','DeepInfra','Novita','Parasail','SiliconFlow','AtlasCloud','Phala','Minimax','Together','Inceptron','Friendli','Clarifai','Fireworks','SambaNova','Groq'],datasets:[{data:[215,183,115,52,41,38,19,14,13,12,8,6,4,4,3,3,2,2,2],backgroundColor:'#8B5CF6',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}});
+
+// Daily requests
+new Chart(document.getElementById('dailyReqsChart'),{type:'bar',data:{labels:['Feb 23','Feb 24','Feb 27','Feb 28','Mar 1'],datasets:[
+  {label:'Gemini 3.1 Pro',data:[59,87,42,93,0],backgroundColor:'#8B5CF6'},
+  {label:'Gemini 2.5 Pro',data:[41,0,0,76,0],backgroundColor:'#3B82F6'},
+  {label:'Qwen 3 235B',data:[15,26,0,43,0],backgroundColor:'#F59E0B'},
+  {label:'GPT 4.1',data:[0,0,0,52,0],backgroundColor:'#10B981'},
+  {label:'Qwen 3 32B',data:[24,30,40,6,0],backgroundColor:'#EF4444'},
+  {label:'MiniMax M2.5',data:[0,0,0,0,43],backgroundColor:'#06B6D4'},
+  {label:'Gemma 3 27B',data:[0,0,59,0,0],backgroundColor:'#94A3B8'}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#F1F5F9'}}}}});
+
+// Hourly
+new Chart(document.getElementById('hourlyChart'),{type:'bar',data:{labels:['00:00','01:00','02:00','10:00','11:00','12:00','13:00','14:00','18:00','20:00','22:00','23:00'],datasets:[{data:[130,111,29,6,85,37,91,35,17,12,39,144],backgroundColor:colors.map((_,i)=>'#8B5CF6'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#F1F5F9'}}}}});
+
+// Latency bar
+new Chart(document.getElementById('latencyChart'),{type:'bar',data:{labels:['GPT 4.1','Gemma 27B','MiniMax M2.5','Gemini 3.1','Gemini 2.5','Qwen 32B','Qwen 235B'],datasets:[{data:[1318,2650,7532,11470,11887,17201,23724],backgroundColor:['#10B981','#94A3B8','#06B6D4','#8B5CF6','#3B82F6','#EF4444','#F59E0B'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>(v/1000).toFixed(1)+'s'},grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}});
+
+// TTFT bar
+new Chart(document.getElementById('ttftChart'),{type:'bar',data:{labels:['GPT 4.1','Gemma 27B','Qwen 235B','Qwen 32B','MiniMax M2.5','Gemini 2.5','Gemini 3.1'],datasets:[{data:[593,753,916,1143,1539,2817,4028],backgroundColor:['#10B981','#94A3B8','#F59E0B','#EF4444','#06B6D4','#3B82F6','#8B5CF6'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>v+'ms'},grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}});
+</script>
+</body>
+</html>
