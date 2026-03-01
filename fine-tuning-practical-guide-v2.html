@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var t=localStorage.getItem("idaratech-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.setAttribute("data-theme","dark")})()</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Fine-Tuning Practical Guide v2</title>
@@ -73,6 +74,47 @@ td{padding:10px 12px;color:#1E293B;border-bottom:1px solid #F1F5F9}
 .footer{background:#0F172A;color:#94A3B8;padding:24px;text-align:center;font-size:12px}
 .footer span{font-weight:700;color:#E2E8F0}
 @media(max-width:700px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr}.vs-box{grid-template-columns:1fr}}
+
+/* ===== Dark / Light Mode ===== */
+:root{--bg:#F8FAFC;--bg-deep:#F1F5F9;--surface:#fff;--surface-hover:#F8FAFC;--border:#E2E8F0;--border-light:#F1F5F9;--text:#1E293B;--text-secondary:#475569;--text-muted:#64748B;--text-faint:#94A3B8;--heading:#0F172A;--code-bg:#F1F5F9;--pre-bg:#0F172A;--toggle-bg:#1E293B;--toggle-color:#F0FDFA}
+[data-theme="dark"]{--bg:#0B1120;--bg-deep:#0F172A;--surface:#1E293B;--surface-hover:#334155;--border:#334155;--border-light:#1E293B;--text:#E2E8F0;--text-secondary:#94A3B8;--text-muted:#64748B;--text-faint:#64748B;--heading:#F1F5F9;--code-bg:#334155;--pre-bg:#020617;--toggle-bg:#F8FAFC;--toggle-color:#0F172A;color-scheme:dark}
+body{background:var(--bg)!important;color:var(--text)!important}
+.tab-nav{background:var(--surface)!important;border-color:var(--border)!important}
+.tb{color:var(--text-muted)!important}
+.card,.model-card,.stat-card,.panel,.report-card,.tl-card,.alert,.sec{background:var(--surface)!important;border-color:var(--border)!important}
+.report-card:hover{border-color:var(--surface-hover)!important;background:var(--surface)!important}
+table th{color:var(--text-muted)!important;border-color:var(--border)!important}
+table td{color:var(--text)!important;border-color:var(--border-light)!important}
+tr:hover td{background:var(--bg-deep)!important}
+table tfoot td{color:var(--text)!important}
+h2{color:var(--heading)!important;border-color:var(--border)!important}
+h3,h4,.card-title,.mc-name,.model-name,.section-title{color:var(--heading)!important}
+p,li{color:var(--text-secondary)!important}
+.mc-metric,.metric{background:var(--bg-deep)!important;border-color:var(--border)!important}
+.mc-metric .ml,.metric-l{color:var(--text-faint)!important}
+.mc-sub,.card-desc,.model-tag,.section-desc{color:var(--text-muted)!important}
+.bar-track{background:var(--border)!important}
+.bar-label .v,.bar-header .v{color:var(--text-muted)!important}
+.bar-label .n,.bar-header .n{color:var(--text)!important}
+pre{background:var(--pre-bg)!important}
+code{background:var(--code-bg)!important}
+td.num{color:var(--text)!important}
+.sub,.card-meta-item{color:var(--text-muted)!important}
+.cards-section{background:var(--bg)!important}
+.note-info,.alert-info{background:color-mix(in srgb,var(--surface) 80%,#4338CA 20%)!important;border-color:#4338CA!important;color:var(--text)!important}
+.note-warn,.alert-warn{background:color-mix(in srgb,var(--surface) 80%,#B45309 20%)!important;border-color:#B45309!important;color:var(--text)!important}
+.note-success,.alert-success{background:color-mix(in srgb,var(--surface) 80%,#15803D 20%)!important;border-color:#15803D!important;color:var(--text)!important}
+.note-danger,.alert-danger{background:color-mix(in srgb,var(--surface) 80%,#991B1B 20%)!important;border-color:#991B1B!important;color:var(--text)!important}
+.strategy-toggle button,.tabs button{background:var(--surface)!important;color:var(--text-muted)!important;border-color:var(--border)!important}
+.info-banner{border-color:var(--border)!important}
+.slide{background:var(--surface)!important;border-color:var(--border)!important}
+.hero-stat{background:rgba(255,255,255,.08)!important}
+.card-link{color:var(--text-muted)!important}
+.sec h2{border-color:var(--border)!important}
+.sec h3{border-color:var(--border)!important}
+#theme-toggle{position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:50%;background:var(--toggle-bg);color:var(--toggle-color);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:999;font-size:20px;border:none;transition:transform .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+#theme-toggle:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+
 </style>
 </head>
 <body>
@@ -921,6 +963,11 @@ function showTab(id){
   document.getElementById('tab-'+id).classList.add('active');
   event.target.classList.add('active');
 }
+</script>
+<button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle theme">&#9790;</button>
+<script>
+function toggleTheme(){var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-toggle').innerHTML=d?'\u263E':'\u2600';localStorage.setItem('idaratech-theme',d?'light':'dark')}
+(function(){var t=localStorage.getItem('idaratech-theme'),d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.getElementById('theme-toggle').innerHTML='\u2600'})();
 </script>
 </body>
 </html>
