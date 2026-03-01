@@ -134,7 +134,7 @@ tr{border-bottom:1px solid #F1F5F9}
 <div class="header">
   <div class="container">
     <div class="header-top">
-      <svg width="52" height="52" viewBox="0 0 120 120" fill="none" id="logo-svg"></svg>
+      <img src="logo.png" alt="Idaratech" style="height:52px">
       <div>
         <div class="brand-label">Idaratech · إدارتك</div>
         <h1>AI SQL Chat Benchmark Report</h1>
@@ -378,7 +378,7 @@ tr{border-bottom:1px solid #F1F5F9}
 <!-- FOOTER -->
 <div class="footer">
   <div class="footer-brand">
-    <svg width="24" height="24" viewBox="0 0 120 120" fill="none" class="footer-logo"></svg>
+    <img src="logo.png" alt="Idaratech" style="height:24px">
     <span>Idaratech · إدارتك</span>
   </div>
   <div>AI SQL Chat Benchmark Report — v2</div>
@@ -458,24 +458,6 @@ const improvements=[
   {t:"COUNT(DISTINCT) Hint",d:"Add to prompt: 'When counting with JOINs, always use COUNT(DISTINCT u.id)'"},
   {t:"Table Consistency Rule",d:"Add rule: 'Use the same tables for the same question regardless of language'"}
 ];
-
-// LOGO SVG
-function drawLogo(el){
-  const R=56,r=33,cx=60,cy=60;
-  const ang=i=>(i*60-90)*Math.PI/180;
-  const ox=i=>cx+R*Math.cos(ang(i));
-  const oy=i=>cy+R*Math.sin(ang(i));
-  const ix=i=>cx+r*Math.cos(ang(i));
-  const iy=i=>cy+r*Math.sin(ang(i));
-  const colors=["#E8792F","#C73A3A","#8C8C8C","#2980B9","#1DA8A0","#7B5EA7"];
-  const bg=el.closest('.footer')?'#0F172A':(el.closest('.header')?'#0d2420':'#0F172A');
-  let paths='';
-  for(let i=0;i<6;i++){const j=(i+1)%6;paths+=`<path d="M${ox(i)},${oy(i)} L${ox(j)},${oy(j)} L${ix(j)},${iy(j)} L${ix(i)},${iy(i)} Z" fill="${colors[i]}"/>`;}
-  let inner=`M${ix(0)},${iy(0)}`;for(let i=1;i<6;i++)inner+=` L${ix(i)},${iy(i)}`;inner+=' Z';
-  paths+=`<path d="${inner}" fill="${bg}"/>`;
-  el.innerHTML=paths;
-}
-document.querySelectorAll('#logo-svg, .footer-logo').forEach(drawLogo);
 
 // TAB SWITCHING
 function showTab(id){

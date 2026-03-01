@@ -93,7 +93,7 @@ td{padding:10px 12px;color:#1E293B;border-bottom:1px solid #F1F5F9}
 <div class="header">
 <div class="mx">
   <div class="header-top">
-    <svg width="52" height="52" viewBox="0 0 120 120" fill="none" id="logo"></svg>
+    <img src="logo.png" alt="Idaratech" style="height:52px">
     <div>
       <div class="brand">Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</div>
       <h1>Fine-Tuning Recommendation Report</h1>
@@ -662,26 +662,12 @@ Example: 500 examples on Gemini 2.5 Pro:
 </div>
 
 <div class="footer">
-  <div class="footer-brand"><svg width="24" height="24" viewBox="0 0 120 120" fill="none" class="flogo"></svg><span>Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</span></div>
+  <div class="footer-brand"><img src="logo.png" alt="Idaratech" style="height:24px"><span>Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</span></div>
   <div>Fine-Tuning Recommendation Report v2 &middot; AI SQL Chat</div>
   <div class="footer-author">Prepared by Bilal Elhalawaty</div>
 </div>
 
 <script>
-// Logo
-function drawLogo(el){
-  const R=56,r=33,cx=60,cy=60,colors=["#E8792F","#C73A3A","#8C8C8C","#2980B9","#1DA8A0","#7B5EA7"];
-  const ang=i=>(i*60-90)*Math.PI/180;
-  const ox=i=>cx+R*Math.cos(ang(i)),oy=i=>cy+R*Math.sin(ang(i));
-  const ix=i=>cx+r*Math.cos(ang(i)),iy=i=>cy+r*Math.sin(ang(i));
-  const bg=el.closest('.footer')?'#0F172A':'#15102e';
-  let p='';
-  for(let i=0;i<6;i++){const j=(i+1)%6;p+=`<path d="M${ox(i)},${oy(i)} L${ox(j)},${oy(j)} L${ix(j)},${iy(j)} L${ix(i)},${iy(i)} Z" fill="${colors[i]}"/>`;}
-  let inner=`M${ix(0)},${iy(0)}`;for(let i=1;i<6;i++)inner+=` L${ix(i)},${iy(i)}`;inner+=' Z';
-  p+=`<path d="${inner}" fill="${bg}"/>`;el.innerHTML=p;
-}
-document.querySelectorAll('#logo,.flogo').forEach(drawLogo);
-
 // Tabs
 function showTab(id){
   document.querySelectorAll('.tc').forEach(e=>e.classList.remove('active'));

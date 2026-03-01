@@ -103,7 +103,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="hero">
   <div class="hero-inner">
     <div class="logo-wrap">
-      <svg class="logo-hex" viewBox="0 0 120 120" fill="none" id="main-logo"></svg>
+      <img src="logo.png" alt="Idaratech" style="height:72px">
     </div>
     <div class="brand">Idaratech · إدارتك</div>
     <h1>AI SQL Chat — Report Hub</h1>
@@ -315,20 +315,5 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="footer-author">Prepared by Bilal Elhalawaty</div>
 </div>
 
-<script>
-(function(){
-  const el=document.getElementById('main-logo');
-  const R=56,r=33,cx=60,cy=60;
-  const colors=["#E8792F","#C73A3A","#8C8C8C","#2980B9","#1DA8A0","#7B5EA7"];
-  const ang=i=>(i*60-90)*Math.PI/180;
-  const ox=i=>cx+R*Math.cos(ang(i)),oy=i=>cy+R*Math.sin(ang(i));
-  const ix=i=>cx+r*Math.cos(ang(i)),iy=i=>cy+r*Math.sin(ang(i));
-  let p='';
-  for(let i=0;i<6;i++){const j=(i+1)%6;p+=`<path d="M${ox(i)},${oy(i)} L${ox(j)},${oy(j)} L${ix(j)},${iy(j)} L${ix(i)},${iy(i)} Z" fill="${colors[i]}"/>`;}
-  let inner=`M${ix(0)},${iy(0)}`;for(let i=1;i<6;i++)inner+=` L${ix(i)},${iy(i)}`;inner+=' Z';
-  p+=`<path d="${inner}" fill="#0F172A"/>`;
-  el.innerHTML=p;
-})();
-</script>
 </body>
 </html>
