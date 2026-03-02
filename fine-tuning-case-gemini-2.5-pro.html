@@ -264,16 +264,16 @@ code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px}
 </div>
 
 <div class="sec">
-  <h3>Failure #1: Wrong Table for Salary Queries</h3>
+  <h3>Failure #1: Inconsistent Table Selection Across Languages</h3>
   <div class="fix-card" style="border-left-color:#EF4444;background:#FEF2F2">
-    <div style="font-size:12px;color:#94A3B8;font-weight:600;margin-bottom:4px">AR Hard 2: "&#1578;&#1601;&#1575;&#1589;&#1610;&#1604; &#1578;&#1603;&#1604;&#1601;&#1577; &#1575;&#1604;&#1585;&#1608;&#1575;&#1578;&#1576; &#1604;&#1603;&#1604; &#1602;&#1587;&#1605;"</div>
-    <div class="fix-before">&#10007; Model used <code>payslips</code> table (historical payroll records)</div>
-    <div class="fix-arrow">&darr; Should have used &darr;</div>
-    <div class="fix-after">&#10003; <code>user_salaries</code> table (current salary configuration)</div>
+    <div style="font-size:12px;color:#94A3B8;font-weight:600;margin-bottom:4px">Hard 2: "Salary cost breakdown per department" / "&#1578;&#1601;&#1575;&#1589;&#1610;&#1604; &#1578;&#1603;&#1604;&#1601;&#1577; &#1575;&#1604;&#1585;&#1608;&#1575;&#1578;&#1576; &#1604;&#1603;&#1604; &#1602;&#1587;&#1605;"</div>
+    <div class="fix-before">&#10007; EN query used <code>user_salaries</code> &mdash; AR query used <code>payslips</code> &mdash; <strong>different results for the same question</strong></div>
+    <div class="fix-arrow">&darr; Both should use the same table &darr;</div>
+    <div class="fix-after">&#10003; Consistent table choice regardless of language (<code>payslips</code> for actual costs, or <code>user_salaries</code> for configured salary)</div>
   </div>
-  <p style="font-size:13px"><strong>Impact:</strong> Returns historical payroll totals instead of current salary breakdown. Numbers could differ by thousands of riyals. The English version of the same question correctly used <code>user_salaries</code> &mdash; showing the model is <strong>inconsistent across languages</strong>.</p>
+  <p style="font-size:13px"><strong>Impact:</strong> The same question in two languages produces different numbers. <code>user_salaries</code> stores the configured salary structure; <code>payslips</code> stores actual payroll records with additions/deductions. Either can be valid depending on context &mdash; but the model must <strong>pick the same one for both languages</strong>. Today it doesn't.</p>
 
-  <div class="alert alert-info"><strong>Why this happens:</strong> The model sees both <code>payslips</code> and <code>user_salaries</code> in the schema. Both contain salary-related columns. Without explicit training on which table to use for "current salary" vs "payroll history", the model guesses differently depending on the query language.</div>
+  <div class="alert alert-info"><strong>Why this happens:</strong> The model sees both <code>payslips</code> and <code>user_salaries</code> in the schema. Both contain salary-related columns (total_basic, total_housing, etc.). Without explicit training on our domain rules, the model picks different tables depending on query language &mdash; a <strong>consistency failure</strong> that fine-tuning eliminates.</div>
 </div>
 
 <div class="sec">
@@ -316,7 +316,7 @@ code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px}
   <table>
     <thead><tr><th>Issue</th><th>Type</th><th>Trainable?</th><th>Training Fix</th></tr></thead>
     <tbody>
-      <tr><td>Wrong table (payslips vs user_salaries)</td><td><span class="b b-red">Wrong data</span></td><td><span class="b b-green">Yes</span></td><td>10-20 salary examples with correct table</td></tr>
+      <tr><td>Inconsistent table per language</td><td><span class="b b-red">Wrong data</span></td><td><span class="b b-green">Yes</span></td><td>10-20 salary examples enforcing consistent table</td></tr>
       <tr><td>English MONTHNAME() in Arabic</td><td><span class="b b-yellow">Language gap</span></td><td><span class="b b-green">Yes</span></td><td>5-10 date examples with Arabic CASE</td></tr>
       <tr><td>High token usage (4,803)</td><td><span class="b b-purple">Efficiency</span></td><td><span class="b b-green">Yes</span></td><td>Concise examples teach shorter outputs</td></tr>
       <tr><td>Cross-language inconsistency</td><td><span class="b b-red">Reliability</span></td><td><span class="b b-green">Yes</span></td><td>Paired EN/AR examples enforce same tables</td></tr>
@@ -344,7 +344,7 @@ code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px}
     <tbody>
       <tr><td><strong>Overall Score</strong></td><td>88/100</td><td>93&ndash;97/100</td><td style="color:#059669;font-weight:700">+5 to +9</td></tr>
       <tr><td><strong>Pass Rate</strong></td><td>93% (13/14)</td><td>100% (14/14)</td><td style="color:#059669;font-weight:700">+7%</td></tr>
-      <tr><td><strong>Table Accuracy</strong></td><td>Inconsistent (payslips vs user_salaries)</td><td>Always correct table</td><td style="color:#059669;font-weight:700">Fixed</td></tr>
+      <tr><td><strong>Table Consistency</strong></td><td>Different table per language</td><td>Same table regardless of language</td><td style="color:#059669;font-weight:700">Fixed</td></tr>
       <tr><td><strong>Arabic Month Names</strong></td><td>English via MONTHNAME()</td><td>Arabic via CASE</td><td style="color:#059669;font-weight:700">Fixed</td></tr>
       <tr><td><strong>Cross-Language Consistency</strong></td><td>Different tables per language</td><td>Same tables regardless</td><td style="color:#059669;font-weight:700">Fixed</td></tr>
       <tr><td><strong>Token Usage</strong></td><td>~4,803 avg</td><td>~2,800&ndash;3,200</td><td style="color:#059669;font-weight:700">-33 to -42%</td></tr>
@@ -367,14 +367,15 @@ code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px}
 </div>
 
 <div class="sec">
-  <h2>Specific Fix #1: Table Knowledge</h2>
-  <h3>Training the model to always use the right tables</h3>
+  <h2>Specific Fix #1: Consistent Table Selection</h2>
+  <h3>Training the model to use the same tables regardless of language</h3>
 
-  <p>We include <strong>10-20 salary-related examples</strong> that explicitly teach the model:</p>
+  <p>We include <strong>10-20 salary-related examples</strong> (paired in EN and AR) that explicitly teach the model:</p>
   <ul style="font-size:13px;margin-bottom:14px;padding-left:20px">
     <li style="margin-bottom:6px"><code>user_salaries</code> = current salary configuration (basic, housing, transport)</li>
-    <li style="margin-bottom:6px"><code>payslips</code> = historical payroll records (monthly pay runs)</li>
+    <li style="margin-bottom:6px"><code>payslips</code> = actual payroll records with additions/deductions (monthly pay runs)</li>
     <li style="margin-bottom:6px"><code>hr_requests</code> = leave requests (not "leaves" or "leave_requests")</li>
+    <li style="margin-bottom:6px"><strong>Same question in EN and AR must always query the same table</strong></li>
   </ul>
 
   <div class="card" style="border-left:4px solid #10B981">
@@ -386,7 +387,7 @@ code{background:#F1F5F9;padding:1px 5px;border-radius:4px;font-size:12px}
     {"role": "assistant", "content": "```sql\nSELECT d.name_ar AS \"&#1575;&#1604;&#1602;&#1587;&#1605;\",\n  SUM(us.basic_salary) AS \"&#1575;&#1604;&#1585;&#1575;&#1578;&#1576; &#1575;&#1604;&#1571;&#1587;&#1575;&#1587;&#1610;\",\n  SUM(us.housing) AS \"&#1576;&#1583;&#1604; &#1575;&#1604;&#1587;&#1603;&#1606;\",\n  SUM(us.transport) AS \"&#1576;&#1583;&#1604; &#1575;&#1604;&#1606;&#1602;&#1604;\"\nFROM user_salaries us\nJOIN users u ON us.user_id = u.id\nJOIN departments d ON u.department_id = d.id\nWHERE u.status = 'active'\nGROUP BY d.id\nLIMIT 1000\n```"}
   ]
 }</code></pre>
-    <p style="font-size:12px;color:#64748B;margin:0">After seeing 10+ examples that always use <code>user_salaries</code> for salary breakdowns, the model learns this is the correct table &mdash; in both English and Arabic.</p>
+    <p style="font-size:12px;color:#64748B;margin:0">After seeing 10+ paired EN/AR examples that always use the same table for salary breakdowns, the model learns to be consistent &mdash; regardless of query language.</p>
   </div>
 </div>
 
@@ -565,7 +566,7 @@ GROUP BY d.id LIMIT 1000</code></pre>
   <table>
     <thead><tr><th>Priority</th><th>Category</th><th>Examples Needed</th><th>Fixes</th></tr></thead>
     <tbody>
-      <tr><td><span class="b b-red">P0</span></td><td>Salary queries (user_salaries vs payslips)</td><td>20&ndash;30</td><td>Wrong table selection</td></tr>
+      <tr><td><span class="b b-red">P0</span></td><td>Salary queries (consistent table across languages)</td><td>20&ndash;30</td><td>Inconsistent table per language</td></tr>
       <tr><td><span class="b b-red">P0</span></td><td>Leave queries (hr_requests, not "leaves")</td><td>20&ndash;30</td><td>Wrong table guessing</td></tr>
       <tr><td><span class="b b-red">P0</span></td><td>Arabic date formatting (CASE, not MONTHNAME)</td><td>10&ndash;15</td><td>English month names in Arabic</td></tr>
       <tr><td><span class="b b-yellow">P1</span></td><td>Attendance queries (correct late hours calc)</td><td>20&ndash;30</td><td>Wrong metric (overtime vs late)</td></tr>
