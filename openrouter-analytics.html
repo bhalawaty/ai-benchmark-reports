@@ -83,18 +83,13 @@ td.money{font-variant-numeric:tabular-nums;text-align:right;font-weight:700;colo
 
 
 /* ===== THEME TOGGLE ===== */
-#theme-bar{padding:6px 20px;display:flex;justify-content:flex-end;background:rgba(15,23,42,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.06)}
-[data-theme="light"] #theme-bar{background:rgba(248,250,252,.85);border-color:#E2E8F0}
-#theme-bar .tb-inner{max-width:1060px;width:100%;margin:0 auto;display:flex;justify-content:flex-end;align-items:center}
-#theme-btn{background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;color:#94A3B8;font-family:inherit;padding:4px 0}
-#theme-btn:hover{color:#E2E8F0}
-[data-theme="light"] #theme-btn{color:#64748B}
-[data-theme="light"] #theme-btn:hover{color:#1E293B}
-.tg-track{width:40px;height:22px;border-radius:11px;background:#334155;position:relative;transition:background .3s;flex-shrink:0}
-.tg-thumb{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .3s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
-[data-theme="dark"] .tg-track{background:#7C3AED}
-[data-theme="dark"] .tg-thumb{transform:translateX(18px)}
-[data-theme="light"] .tg-track{background:#CBD5E1}
+#theme-bar{position:fixed;top:12px;left:12px;z-index:100}
+
+
+#theme-btn{background:rgba(15,23,42,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:50%;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;transition:background .2s,border-color .2s}
+#theme-btn:hover{background:rgba(15,23,42,.8);border-color:rgba(255,255,255,.2)}
+[data-theme="light"] #theme-btn{background:rgba(255,255,255,.7);border-color:#E2E8F0}
+[data-theme="light"] #theme-btn:hover{background:rgba(255,255,255,.95);border-color:#CBD5E1}
 
 /* ===== DARK MODE ===== */
 [data-theme="dark"] body{background:#0B1120!important;color:#E2E8F0!important}
@@ -293,12 +288,12 @@ td.money{font-variant-numeric:tabular-nums;text-align:right;font-weight:700;colo
 
 /* Smooth transitions */
 *{transition:background-color .25s,border-color .25s,color .25s}
-.header,.hero,.footer,#theme-bar,.tg-track,.tg-thumb,.bar-fill,.score-bar-fill,.score-fill,.rank-circle,.b,.badge{transition:none!important}
+.header,.hero,.footer,#theme-bar,.bar-fill,.score-bar-fill,.score-fill,.rank-circle,.b,.badge{transition:none!important}
 
 </style>
 </head>
 <body>
-<div id="theme-bar"><div class="tb-inner"><button id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"><span id="theme-label">Dark mode</span><span class="tg-track"><span class="tg-thumb"></span></span></button></div></div>
+<div id="theme-bar"><button id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"><span id="theme-icon">☀️</span></button></div>
 
 <div class="header">
 <div class="mx">
@@ -748,8 +743,8 @@ new Chart(document.getElementById('latencyChart'),{type:'bar',data:{labels:['GPT
 new Chart(document.getElementById('ttftChart'),{type:'bar',data:{labels:['GPT 4.1','Gemma 27B','Qwen 235B','Qwen 32B','MiniMax M2.5','Gemini 2.5','Gemini 3.1'],datasets:[{data:[593,753,916,1143,1539,2817,4028],backgroundColor:['#10B981','#94A3B8','#F59E0B','#EF4444','#06B6D4','#3B82F6','#8B5CF6'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>v+'ms'},grid:{color:'#F1F5F9'}},y:{grid:{display:false}}}}});
 </script>
 <script>
-function toggleTheme(){var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-label').textContent=d?'Dark mode':'Light mode';localStorage.setItem('idaratech-theme',d?'light':'dark')}
-(function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d)document.getElementById('theme-label').textContent='Light mode'})();
+function toggleTheme(){var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-icon').textContent=d?'🌙':'☀️';localStorage.setItem('idaratech-theme',d?'light':'dark')}
+(function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d)document.getElementById('theme-icon').textContent='☀️'})();
 </script>
 </body>
 </html>
