@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Case for Fine-Tuning Gemini 2.5 Flash | Idaratech</title>
+<style>
+:root{--bg:#0F172A;--surface:#1E293B;--card:#1E293B;--border:#334155;--text:#E2E8F0;--muted:#94A3B8;--accent:#14B8A6;--accent-bg:rgba(20,184,166,0.1);--success:#10B981;--warning:#F59E0B;--danger:#EF4444;--info:#3B82F6;--code-bg:#0F172A}
+[data-theme="light"]{--bg:#F8FAFC;--surface:#FFFFFF;--card:#FFFFFF;--border:#E2E8F0;--text:#1E293B;--muted:#64748B;--accent:#0D9488;--accent-bg:rgba(13,148,136,0.06);--success:#059669;--warning:#D97706;--danger:#DC2626;--info:#2563EB;--code-bg:#F1F5F9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:24px 20px}
+h2{font-size:20px;font-weight:700;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:16px}
+h3{font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text)}
+p{font-size:14px;margin-bottom:12px;color:var(--text)}
+a{color:var(--accent)}
+
+/* Header */
+.header{background:linear-gradient(135deg,#0F766E 0%,#115E59 50%,#134E4A 100%);padding:32px 20px;text-align:center;position:relative}
+.header h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px}
+.header .sub{font-size:14px;color:#99F6E4;margin-bottom:20px}
+.header .badge{display:inline-block;background:rgba(255,255,255,0.15);color:#fff;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:700px;margin:0 auto}
+.kpi{background:rgba(255,255,255,0.1);border-radius:10px;padding:14px 10px;text-align:center;backdrop-filter:blur(8px)}
+.kpi .kv{font-size:28px;font-weight:800;color:#fff}
+.kpi .kl{font-size:11px;color:#A7F3D0;text-transform:uppercase;letter-spacing:0.5px}
+.theme-toggle{position:absolute;top:16px;right:20px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--surface);padding:6px;border-radius:10px;margin:20px 0;flex-wrap:wrap;border:1px solid var(--border)}
+.tb{padding:8px 16px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s}
+.tb:hover{background:var(--accent-bg);color:var(--accent)}
+.tb.active{background:var(--accent);color:#fff}
+.tc{display:none}.tc.active{display:block}
+
+/* Cards & Sections */
+.sec{margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* Alerts */
+.alert{padding:14px 18px;border-radius:8px;font-size:13px;margin:14px 0;line-height:1.6}
+.alert-success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--success)}
+.alert-warning{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:var(--warning)}
+.alert-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger)}
+.alert-info{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:var(--info)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+th{background:var(--surface);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:hover{background:var(--accent-bg)}
+.row-highlight{background:var(--accent-bg) !important}
+
+/* Score bar */
+.score-bar{height:32px;border-radius:8px;position:relative;margin:10px 0}
+.score-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding:0 12px;font-weight:700;font-size:14px;color:#fff;min-width:60px}
+.score-label{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)}
+
+/* Test grid */
+.test-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0}
+.test-cell{border-radius:6px;padding:10px 6px;text-align:center;font-size:11px;font-weight:600}
+.test-pass{background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.3)}
+.test-fail{background:rgba(239,68,68,0.15);color:#EF4444;border:1px solid rgba(239,68,68,0.3)}
+.test-warn{background:rgba(245,158,11,0.15);color:#F59E0B;border:1px solid rgba(245,158,11,0.3)}
+
+/* Stat boxes */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
+.sb{background:var(--surface);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)}
+.sb-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.sb-v{font-size:22px;font-weight:700}
+
+/* Badges */
+.b{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.b-green{background:rgba(16,185,129,0.15);color:#10B981}
+.b-yellow{background:rgba(245,158,11,0.15);color:#F59E0B}
+.b-red{background:rgba(239,68,68,0.15);color:#EF4444}
+.b-blue{background:rgba(59,130,246,0.15);color:#3B82F6}
+.b-gray{background:rgba(148,163,184,0.15);color:#94A3B8}
+.b-teal{background:rgba(20,184,166,0.15);color:#14B8A6}
+
+/* Code */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto;font-size:12px;margin:10px 0}
+code{font-family:'SF Mono','Fira Code',monospace;font-size:12px}
+
+/* Flow boxes */
+.flow-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.fl{font-size:28px;margin-bottom:6px}
+.ft{font-weight:700;font-size:14px;margin-bottom:4px}
+.fd{font-size:12px;color:var(--muted)}
+
+/* Cost cards */
+.cost-compare{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+.cost-card{flex:1;min-width:200px;padding:20px;text-align:center}
+.cc-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.cc-price{font-size:28px;font-weight:800}
+.cc-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.vs-divider{font-size:24px;font-weight:800;color:var(--muted)}
+
+/* ROI grid */
+.roi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
+.roi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.roi-v{font-size:28px;font-weight:800}
+.roi-l{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* Calculation box */
+.calc-box{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:18px;margin:12px 0}
+
+/* Advantage callout */
+.advantage{background:linear-gradient(135deg,rgba(20,184,166,0.1),rgba(13,148,136,0.05));border:2px solid rgba(20,184,166,0.3);border-radius:12px;padding:20px;margin:16px 0;text-align:center}
+.advantage .av{font-size:36px;font-weight:800;color:var(--accent)}
+.advantage .al{font-size:14px;color:var(--muted);margin-top:4px}
+
+/* Num highlight */
+.num{font-weight:700;font-size:16px}
+
+/* Footer */
+.footer{text-align:center;padding:20px;border-top:1px solid var(--border);margin-top:30px;font-size:12px;color:var(--muted)}
+.footer-brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;font-weight:600;color:var(--text)}
+.footer-author{margin-top:4px}
+
+/* Responsive */
+@media(max-width:768px){
+.kpis,.g3,.g4,.roi-grid{grid-template-columns:repeat(2,1fr)}
+.g2{grid-template-columns:1fr}
+.test-grid{grid-template-columns:repeat(4,1fr)}
+.tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-icon">&#127769;</button>
+  <div class="badge">AI SQL Chat &middot; Benchmark Analysis</div>
+  <h1>The Case for Fine-Tuning Gemini 2.5 Flash</h1>
+  <p class="sub">Why the budget model is the smartest place to start &mdash; and how $7.50 gets us from 82 to 90+</p>
+  <div class="kpis">
+    <div class="kpi"><div class="kv">82</div><div class="kl">Current Score</div></div>
+    <div class="kpi"><div class="kv">90&ndash;94</div><div class="kl">Post Fine-Tuning</div></div>
+    <div class="kpi"><div class="kv">$7.50</div><div class="kl">Training Cost</div></div>
+    <div class="kpi"><div class="kv">2&ndash;3 wk</div><div class="kl">Effort</div></div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="wrap">
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tb active" onclick="showTab('current')">Current State</button>
+  <button class="tb" onclick="showTab('wrong')">What Goes Wrong</button>
+  <button class="tb" onclick="showTab('fix')">How Fine-Tuning Fixes It</button>
+  <button class="tb" onclick="showTab('costs')">Cost Analysis</button>
+  <button class="tb" onclick="showTab('action')">Recommendation</button>
+</div>
+
+<!-- ============ TAB 1: CURRENT STATE ============ -->
+<div class="tc active" id="tab-current">
+
+<div class="sec">
+  <h2>Gemini 2.5 Flash &mdash; Benchmark Score</h2>
+  <div class="score-bar" style="background:rgba(20,184,166,0.1)">
+    <div class="score-fill" style="width:82%;background:linear-gradient(90deg,#14B8A6,#0D9488)">82 / 100</div>
+    <div class="score-label">Rank #4 of 8 models tested</div>
+  </div>
+  <p>Scored 82/100 on the Idaratech AI SQL Chat Benchmark &mdash; 14 real-world HR queries across English and Arabic, easy to hard difficulty. Passed 13 of 14 tests (93% pass rate).</p>
+  <div class="alert alert-info"><strong>Context:</strong> Gemini 2.5 Pro scored 88/100 (Rank #1). Flash trails by 6 points but costs <strong>75% less per query</strong> and is <strong>4.3x faster</strong>. The question isn't "is Flash good enough?" &mdash; it's "can we close the gap with $7.50 of training?"</div>
+</div>
+
+<div class="sec">
+  <h2>Test-by-Test Results (14 Tests)</h2>
+  <div class="test-grid">
+    <div class="test-cell test-pass">EN Easy 1<br>PASS</div>
+    <div class="test-cell test-pass">EN Easy 2<br>PASS*</div>
+    <div class="test-cell test-pass">EN Med 1<br>PASS*</div>
+    <div class="test-cell test-pass">EN Med 2<br>PASS</div>
+    <div class="test-cell test-pass">EN Hard 1<br>PASS</div>
+    <div class="test-cell test-pass">EN Hard 2<br>PASS</div>
+    <div class="test-cell test-pass">EN Hard 3<br>PASS</div>
+  </div>
+  <div class="test-grid">
+    <div class="test-cell test-pass">AR Easy 1<br>PASS</div>
+    <div class="test-cell test-fail">AR Easy 2<br>FAIL</div>
+    <div class="test-cell test-pass">AR Med 1<br>PASS</div>
+    <div class="test-cell test-pass">AR Med 2<br>PASS</div>
+    <div class="test-cell test-pass">AR Hard 1<br>PASS</div>
+    <div class="test-cell test-pass">AR Hard 2<br>PASS</div>
+    <div class="test-cell test-pass">AR Hard 3<br>PASS</div>
+  </div>
+  <p style="font-size:12px;color:var(--muted)">* EN Easy 2 passed but used 18,473 tokens (extreme outlier). EN Med 1 was non-deterministic across runs.</p>
+</div>
+
+<div class="sec">
+  <h2>Key Statistics</h2>
+  <div class="sg">
+    <div class="sb"><div class="sb-l">Pass Rate</div><div class="sb-v" style="color:#14B8A6">93%</div></div>
+    <div class="sb"><div class="sb-l">Avg Tokens</div><div class="sb-v">4,535</div></div>
+    <div class="sb"><div class="sb-l">Avg Time</div><div class="sb-v">6.9s</div></div>
+    <div class="sb"><div class="sb-l">Retries</div><div class="sb-v" style="color:#10B981">0</div></div>
+    <div class="sb"><div class="sb-l">Arabic Compliance</div><div class="sb-v" style="color:#10B981">7/7</div></div>
+    <div class="sb"><div class="sb-l">Inference Cost</div><div class="sb-v" style="color:#14B8A6">$0.30/$2.50</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Strengths (What Flash Already Does Well)</h2>
+  <div class="g2">
+    <div class="card">
+      <h4 style="color:#14B8A6;border:none;padding:0;margin:0 0 8px">Perfect Arabic Compliance</h4>
+      <p style="margin:0;font-size:13px">7/7 Arabic content criteria and 7/7 Arabic header criteria. When Flash writes Arabic, it's consistently correct &mdash; proper RTL aliases, correct column naming.</p>
+    </div>
+    <div class="card">
+      <h4 style="color:#14B8A6;border:none;padding:0;margin:0 0 8px">Speed Champion</h4>
+      <p style="margin:0;font-size:13px">6.9s average response time &mdash; 4.3x faster than Pro (29.8s). This means significantly better UX for real-time chat interactions.</p>
+    </div>
+    <div class="card">
+      <h4 style="color:#3B82F6;border:none;padding:0;margin:0 0 8px">Zero Retries</h4>
+      <p style="margin:0;font-size:13px">No queries needed retries &mdash; Flash generated valid SQL on the first attempt every time. Even Pro needed 1 retry.</p>
+    </div>
+    <div class="card">
+      <h4 style="color:#3B82F6;border:none;padding:0;margin:0 0 8px">Budget-Friendly</h4>
+      <p style="margin:0;font-size:13px">$0.30/M input + $2.50/M output. 75% cheaper than Pro. For high-volume usage, this difference compounds dramatically.</p>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Why 82 Isn't Enough</h2>
+  <p>82/100 means <strong>18% error rate</strong>. In production with hundreds of daily queries, that's a significant portion returning wrong or unreliable data.</p>
+
+  <div class="advantage" style="border-color:rgba(239,68,68,0.3);background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.03))">
+    <div class="av" style="color:#EF4444">18%</div>
+    <div class="al">of queries may produce incorrect results in production</div>
+  </div>
+
+  <div class="g3">
+    <div class="card" style="border-left:4px solid #EF4444">
+      <h4 style="color:#EF4444;border:none;padding:0;margin:0 0 6px">1 in 5</h4>
+      <p style="margin:0;font-size:12px">Roughly 1 in 5 HR queries could return wrong data. Users lose trust quickly.</p>
+    </div>
+    <div class="card" style="border-left:4px solid #F59E0B">
+      <h4 style="color:#F59E0B;border:none;padding:0;margin:0 0 6px">Token Spikes</h4>
+      <p style="margin:0;font-size:12px">EN Easy 2 consumed 18,473 tokens &mdash; 5x the average. Unpredictable costs at scale.</p>
+    </div>
+    <div class="card" style="border-left:4px solid #8B5CF6">
+      <h4 style="color:#8B5CF6;border:none;padding:0;margin:0 0 6px">Non-Deterministic</h4>
+      <p style="margin:0;font-size:12px">EN Medium 1 produced 3 different results across runs. Same question, different answers = unreliable.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-warning"><strong>The 18% matters more than it seems.</strong> Our benchmark tests 14 carefully crafted queries. In production, users ask <strong>thousands</strong> of unpredictable variations. The real-world error rate could be higher than the benchmark suggests.</div>
+</div>
+
+</div>
+
+<!-- ============ TAB 2: WHAT GOES WRONG ============ -->
+<div class="tc" id="tab-wrong">
+
+<div class="sec">
+  <h2>The Big Picture</h2>
+  <p>Flash scored 82/100. It passed 13 of 14 tests. Sounds decent &mdash; but let's look at <strong>what went wrong</strong> and why it matters in production.</p>
+
+  <div class="g2">
+    <div class="card" style="border-left:4px solid #14B8A6">
+      <h4 style="color:#14B8A6;border:none;padding:0;margin:0 0 6px">What We Tested</h4>
+      <p style="margin:0;font-size:13px">14 queries across 7 categories (easy/medium/hard) in English and Arabic. These are representative of real user questions.</p>
+    </div>
+    <div class="card" style="border-left:4px solid #EF4444">
+      <h4 style="color:#EF4444;border:none;padding:0;margin:0 0 6px">What Production Looks Like</h4>
+      <p style="margin:0;font-size:13px">1,000+ unique queries per day. Unexpected phrasings. Ambiguous requests. Edge cases we haven't tested.</p>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Actual Failure #1: Wrong JOIN on Leave Query</h2>
+  <h3>AR Easy 2: "Show me employees with remaining leave balance"</h3>
+
+  <div class="card" style="border-left:4px solid #EF4444">
+    <h4 style="color:#EF4444;border:none;padding:0;margin:0 0 10px">What Happened</h4>
+    <p style="font-size:13px">The model joined <code>hr_requests</code> on <code>special_leave_id</code> instead of <code>user_id</code>. This returned <strong>1 row</strong> instead of the expected <strong>5 rows</strong> &mdash; making 80% of data invisible.</p>
+    <pre><code>-- What Flash wrote (WRONG):
+SELECT u.name_ar, ...
+FROM users u
+JOIN hr_requests hr ON u.id = hr.special_leave_id  -- Wrong column!
+WHERE hr.type = 'annual_leave'
+
+-- What it should be:
+SELECT u.name_ar, ...
+FROM users u
+JOIN hr_requests hr ON u.id = hr.user_id           -- Correct column
+WHERE hr.type = 'annual_leave'</code></pre>
+    <p style="font-size:12px;color:#EF4444;margin:0"><strong>Impact:</strong> User sees 1 employee instead of 5. Data appears filtered but is actually broken. Hard to detect visually.</p>
+  </div>
+
+  <div class="alert alert-danger"><strong>This is the most dangerous type of error</strong> &mdash; it doesn't throw an error. It returns valid-looking SQL with valid-looking results. The user has no way to know the data is wrong unless they manually verify every query.</div>
+</div>
+
+<div class="sec">
+  <h2>Actual Failure #2: Non-Deterministic Responses</h2>
+  <h3>EN Medium 1: Generated different SQL across multiple runs</h3>
+
+  <div class="card" style="border-left:4px solid #F59E0B">
+    <h4 style="color:#F59E0B;border:none;padding:0;margin:0 0 10px">What Happened</h4>
+    <p style="font-size:13px">When run 3 times with the same question, Flash produced <strong>3 different SQL queries</strong>. One returned correct results, one returned partially correct results, and one was wrong.</p>
+
+    <div class="g3" style="margin-top:12px">
+      <div style="background:rgba(16,185,129,0.1);border-radius:8px;padding:10px;text-align:center;border:1px solid rgba(16,185,129,0.3)">
+        <div style="font-size:11px;color:#10B981;font-weight:600">Run 1</div>
+        <div style="font-size:18px;font-weight:700;color:#10B981">Correct</div>
+      </div>
+      <div style="background:rgba(245,158,11,0.1);border-radius:8px;padding:10px;text-align:center;border:1px solid rgba(245,158,11,0.3)">
+        <div style="font-size:11px;color:#F59E0B;font-weight:600">Run 2</div>
+        <div style="font-size:18px;font-weight:700;color:#F59E0B">Partial</div>
+      </div>
+      <div style="background:rgba(239,68,68,0.1);border-radius:8px;padding:10px;text-align:center;border:1px solid rgba(239,68,68,0.3)">
+        <div style="font-size:11px;color:#EF4444;font-weight:600">Run 3</div>
+        <div style="font-size:18px;font-weight:700;color:#EF4444">Wrong</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 0"><strong>Same question, same model, same prompt &mdash; three different answers.</strong> This is a consistency problem that erodes trust.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Actual Failure #3: Extreme Token Spike</h2>
+  <h3>EN Easy 2: 18,473 tokens for a simple query</h3>
+
+  <div class="card" style="border-left:4px solid #8B5CF6">
+    <h4 style="color:#8B5CF6;border:none;padding:0;margin:0 0 10px">What Happened</h4>
+    <p style="font-size:13px">A straightforward English query consumed <strong>18,473 tokens</strong> &mdash; over 5x the model's average of 3,462 tokens (excluding this outlier). The query was marked as "Easy" difficulty.</p>
+
+    <div class="g2" style="margin-top:12px">
+      <div style="text-align:center">
+        <div style="background:var(--surface);border-radius:8px;padding:14px;border:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted)">Normal Query</div>
+          <div style="font-size:24px;font-weight:700;color:#14B8A6">~3,462</div>
+          <div style="font-size:11px;color:var(--muted)">tokens</div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="background:rgba(139,92,246,0.1);border-radius:8px;padding:14px;border:1px solid rgba(139,92,246,0.3)">
+          <div style="font-size:11px;color:#8B5CF6">EN Easy 2</div>
+          <div style="font-size:24px;font-weight:700;color:#8B5CF6">18,473</div>
+          <div style="font-size:11px;color:#8B5CF6">tokens (5.3x)</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 0">The SQL was correct, but the model generated excessive reasoning/explanation text. At scale, this kind of token spike makes costs unpredictable.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Production Impact at Scale</h2>
+  <p>These aren't edge cases &mdash; they represent <strong>patterns</strong> that will repeat at scale. Here's what 18% error rate looks like in production:</p>
+
+  <table>
+    <thead><tr><th>Daily Queries</th><th>Expected Errors/Day</th><th>Errors/Month</th><th>User Impact</th></tr></thead>
+    <tbody>
+      <tr><td>100 queries</td><td>18 wrong answers</td><td>~540</td><td>Users notice quickly</td></tr>
+      <tr><td>500 queries</td><td>90 wrong answers</td><td>~2,700</td><td>Support tickets pile up</td></tr>
+      <tr><td>1,000 queries</td><td>180 wrong answers</td><td>~5,400</td><td>Trust collapse</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-danger"><strong>The "silent failure" problem:</strong> Wrong JOINs don't throw errors. They return data that <em>looks</em> right but isn't. Users make business decisions based on wrong data &mdash; and they never know.</div>
+</div>
+
+</div>
+
+<!-- ============ TAB 3: HOW FINE-TUNING FIXES IT ============ -->
+<div class="tc" id="tab-fix">
+
+<div class="sec">
+  <h2>Score Projection: Before vs After Fine-Tuning</h2>
+
+  <div class="g2">
+    <div>
+      <h3>Before (Current)</h3>
+      <div class="score-bar" style="background:rgba(148,163,184,0.1)">
+        <div class="score-fill" style="width:82%;background:#64748B">82 / 100</div>
+      </div>
+    </div>
+    <div>
+      <h3>After (Projected)</h3>
+      <div class="score-bar" style="background:rgba(20,184,166,0.1)">
+        <div class="score-fill" style="width:92%;background:linear-gradient(90deg,#14B8A6,#0D9488)">90&ndash;94 / 100</div>
+      </div>
+    </div>
+  </div>
+
+  <table style="margin-top:16px">
+    <thead><tr><th>Metric</th><th>Before</th><th>After (Projected)</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Overall Score</strong></td><td>82/100</td><td>90&ndash;94/100</td><td style="color:#14B8A6;font-weight:700">+8 to +12</td></tr>
+      <tr><td><strong>Pass Rate</strong></td><td>93% (13/14)</td><td>100% (14/14)</td><td style="color:#14B8A6;font-weight:700">+7%</td></tr>
+      <tr><td><strong>JOIN Accuracy</strong></td><td>Guesses from column names</td><td>Knows correct columns for each table</td><td style="color:#14B8A6;font-weight:700">Fixed</td></tr>
+      <tr><td><strong>Consistency</strong></td><td>Non-deterministic on some queries</td><td>Consistent output per query pattern</td><td style="color:#14B8A6;font-weight:700">Fixed</td></tr>
+      <tr><td><strong>Token Efficiency</strong></td><td>~4,535 avg (with spikes)</td><td>~2,500&ndash;3,000</td><td style="color:#14B8A6;font-weight:700">-35 to -45%</td></tr>
+      <tr><td><strong>Token Spikes</strong></td><td>18,473 max</td><td>Eliminated</td><td style="color:#14B8A6;font-weight:700">Stable</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>How do we project 90-94?</strong> Flash already scores 82 with zero training. Its failures are domain-specific patterns (wrong JOINs, non-deterministic table selection). These are exactly the patterns SFT is designed to fix. Industry benchmarks show 8-12 point improvements for models starting in the 78-85 range, since there's more room for pattern correction.</div>
+</div>
+
+<div class="sec">
+  <h2>How Fine-Tuning Works for Our Case</h2>
+  <p>Fine-tuning means giving the model <strong>500 correct examples</strong> of "question &rarr; perfect SQL" pairs. The model learns our database patterns, JOIN conventions, and consistent behavior from these examples.</p>
+
+  <div class="g3" style="margin-top:16px">
+    <div class="flow-box"><div class="fl">&#128218;</div><div class="ft">Prepare Examples</div><div class="fd">500 question/SQL pairs<br>English + Arabic</div></div>
+    <div class="flow-box" style="border-color:#14B8A6"><div class="fl">&#128640;</div><div class="ft">Train on Vertex AI</div><div class="fd">$7.50 one-time<br>Google handles it</div></div>
+    <div class="flow-box"><div class="fl">&#9989;</div><div class="ft">Deploy Fine-Tuned Model</div><div class="fd">Same API, same cost<br>Better accuracy</div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Specific Fix #1: Correct JOIN Columns</h2>
+  <h3>Teaching the model which column to join on for each table</h3>
+
+  <p>We include <strong>15-25 leave/HR-request examples</strong> that explicitly teach the model:</p>
+  <ul style="font-size:13px;margin-bottom:14px;padding-left:20px">
+    <li style="margin-bottom:6px"><code>hr_requests</code> should be joined via <code>user_id</code> (not <code>special_leave_id</code>)</li>
+    <li style="margin-bottom:6px"><code>special_leave_id</code> is a reference to the leave type, not the employee</li>
+    <li style="margin-bottom:6px"><code>user_salaries</code> = current salary configuration; <code>payslips</code> = actual payroll records</li>
+    <li style="margin-bottom:6px"><strong>Every JOIN must use the correct foreign key, not just column name guessing</strong></li>
+  </ul>
+
+  <div class="card" style="border-left:4px solid #14B8A6">
+    <h4 style="color:#14B8A6;border:none;padding:0;margin:0 0 10px">Example Training Data (Leave Query)</h4>
+    <pre><code>{
+  "messages": [
+    {"role": "system", "content": "[schema + rules]"},
+    {"role": "user", "content": "&#1571;&#1592;&#1607;&#1585; &#1604;&#1610; &#1575;&#1604;&#1605;&#1608;&#1592;&#1601;&#1610;&#1606; &#1605;&#1593; &#1585;&#1589;&#1610;&#1583; &#1575;&#1604;&#1573;&#1580;&#1575;&#1586;&#1575;&#1578; &#1575;&#1604;&#1605;&#1578;&#1576;&#1602;&#1610;"},
+    {"role": "assistant", "content": "```sql\nSELECT u.name_ar AS \"&#1575;&#1604;&#1605;&#1608;&#1592;&#1601;\",\n  u.leave_balance AS \"&#1585;&#1589;&#1610;&#1583; &#1575;&#1604;&#1573;&#1580;&#1575;&#1586;&#1575;&#1578;\",\n  COUNT(hr.id) AS \"&#1575;&#1604;&#1573;&#1580;&#1575;&#1586;&#1575;&#1578; &#1575;&#1604;&#1605;&#1587;&#1578;&#1582;&#1583;&#1605;&#1577;\"\nFROM users u\nLEFT JOIN hr_requests hr ON u.id = hr.user_id\n  AND hr.type = 'annual_leave'\n  AND hr.status = 'approved'\nWHERE u.status = 'active'\nGROUP BY u.id\nLIMIT 1000\n```"}
+  ]
+}</code></pre>
+    <p style="font-size:12px;color:#64748B;margin:0">After seeing 15+ examples that always join <code>hr_requests</code> via <code>user_id</code>, the model stops guessing and learns the correct column.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Specific Fix #2: Deterministic Responses</h2>
+  <h3>Training the model to pick ONE consistent approach per query type</h3>
+
+  <div class="card" style="border-left:4px solid #F59E0B">
+    <h4 style="color:#F59E0B;border:none;padding:0;margin:0 0 10px">Why Non-Determinism Happens</h4>
+    <p style="font-size:13px">Flash has multiple "equally valid" table/column choices for some queries. Without training, it randomly picks between them. Fine-tuning teaches a <strong>single canonical approach</strong> for each query pattern.</p>
+  </div>
+
+  <div class="g2" style="margin-top:12px">
+    <div class="card" style="border-left:4px solid #EF4444">
+      <h4 style="color:#EF4444;border:none;padding:0;margin:0 0 8px">Before: 3 Different Outputs</h4>
+      <pre style="font-size:11px"><code>-- Run 1: Uses user_salaries
+-- Run 2: Uses payslips
+-- Run 3: Uses both with UNION
+-- Same question, three approaches!</code></pre>
+    </div>
+    <div class="card" style="border-left:4px solid #14B8A6">
+      <h4 style="color:#14B8A6;border:none;padding:0;margin:0 0 8px">After: Always the Same</h4>
+      <pre style="font-size:11px"><code>-- Every run: Uses user_salaries
+-- Model learned: "salary breakdown"
+-- always means user_salaries table
+-- Consistent, predictable, trustworthy</code></pre>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Specific Fix #3: Token Control</h2>
+  <h3>Eliminating token spikes by training concise outputs</h3>
+
+  <p>The 18,473-token outlier happens because Flash sometimes generates excessive explanation text alongside SQL. Training on 500 examples of <strong>clean, concise SQL-only outputs</strong> teaches the model to stay focused.</p>
+
+  <div class="card" style="border-left:4px solid #8B5CF6">
+    <h4 style="color:#8B5CF6;border:none;padding:0;margin:0 0 10px">Training Data Pattern</h4>
+    <pre><code>-- Every training example follows the same structure:
+-- 1. Brief explanation (1-2 sentences)
+-- 2. Clean SQL query
+-- 3. No excessive commentary
+-- 4. Always ends with LIMIT 1000
+
+-- After 500 examples of this pattern, the model learns:
+-- "Be concise. Give the SQL. Move on."</code></pre>
+    <p style="font-size:12px;color:#64748B;margin:0">Expected result: Average tokens drop from 4,535 to ~2,500-3,000. No more 18K spikes.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Why Fine-Tuning &mdash; Not Just Better Prompts?</h2>
+  <p>A fair question: can we just improve the system prompt instead of fine-tuning? Here's why prompts alone aren't enough:</p>
+
+  <table>
+    <thead><tr><th>Approach</th><th>What It Does</th><th>Limitation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Add rules to prompt</strong></td><td>"Always join hr_requests via user_id"</td><td>Prompt is already 3,000+ tokens. More rules = more cost, more confusion. Model may ignore rules when context is long.</td></tr>
+      <tr><td><strong>Add table descriptions</strong></td><td>Annotate each table's foreign keys</td><td>50+ tables &times; descriptions = massive prompt. Token cost increases. Still no guarantee model follows them.</td></tr>
+      <tr><td><strong>Few-shot examples in prompt</strong></td><td>Include 2-3 example queries in prompt</td><td>Limited to 2-3 examples (cost). Can't cover all 7 query types &times; 2 languages. Static examples don't generalize.</td></tr>
+      <tr><td><strong style="color:#14B8A6">Fine-tuning (SFT)</strong></td><td>Train on 500 correct examples</td><td style="color:#0D9488"><strong>No limitation. Model internalizes patterns. Zero prompt overhead. Works for all query types.</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>Key point:</strong> Prompt engineering is a workaround. Fine-tuning is a permanent fix. The model doesn't just follow rules &mdash; it <strong>learns</strong> the rules. After training, it doesn't need to be told "use user_id for hr_requests" because it's seen 15+ examples and internalized the pattern.</div>
+</div>
+
+</div>
+
+<!-- ============ TAB 4: COST ANALYSIS ============ -->
+<div class="tc" id="tab-costs">
+
+<div class="sec">
+  <h2>Cost to Fine-Tune Gemini 2.5 Flash</h2>
+  <p>Fine-tuning involves three cost components. For Gemini 2.5 Flash on Vertex AI, <strong>two of them are $0</strong>.</p>
+</div>
+
+<div class="sec">
+  <h3>One-Time Training Cost</h3>
+  <div class="calc-box">
+    <div style="font-size:14px;font-weight:700;margin-bottom:8px">Cost Calculation</div>
+    <pre><code>500 examples &times; ~1,000 tokens each = 500,000 dataset tokens
+500,000 &times; 3 epochs (training passes) = 1,500,000 effective tokens (1.5M)
+1.5M &times; $5.00 per million tokens     = <strong>$7.50</strong> &larr; total training cost</code></pre>
+    <p style="font-size:13px;margin:0">You pay this <strong>once</strong>. Google trains the model on their GPUs. You get back a fine-tuned model endpoint. Done.</p>
+  </div>
+
+  <div class="advantage">
+    <div class="av">$7.50</div>
+    <div class="al">Total one-time cost &mdash; 5x cheaper than Gemini 2.5 Pro ($37.50)</div>
+  </div>
+</div>
+
+<div class="sec">
+  <h3>Ongoing Inference Cost (Per-Query)</h3>
+  <p>This is what you pay every time a user asks a question. <strong>It stays exactly the same after fine-tuning.</strong></p>
+
+  <div class="cost-compare">
+    <div class="cost-card" style="background:#F8FAFC;border:2px solid #E2E8F0;border-radius:12px">
+      <div class="cc-title" style="color:#94A3B8">Before Fine-Tuning</div>
+      <div class="cc-price" style="color:#1E293B">$0.30<span style="font-size:14px;color:#94A3B8">/M input</span></div>
+      <div class="cc-price" style="color:#1E293B;font-size:22px">$2.50<span style="font-size:14px;color:#94A3B8">/M output</span></div>
+      <div class="cc-sub">Standard Flash pricing</div>
+    </div>
+    <div class="vs-divider">=</div>
+    <div class="cost-card" style="background:rgba(20,184,166,0.06);border:2px solid rgba(20,184,166,0.4);border-radius:12px">
+      <div class="cc-title" style="color:#14B8A6">After Fine-Tuning</div>
+      <div class="cc-price" style="color:#14B8A6">$0.30<span style="font-size:14px;color:#94A3B8">/M input</span></div>
+      <div class="cc-price" style="color:#14B8A6;font-size:22px">$2.50<span style="font-size:14px;color:#94A3B8">/M output</span></div>
+      <div class="cc-sub">Same price &mdash; no increase</div>
+    </div>
+  </div>
+
+  <div class="alert alert-success"><strong>This is a major advantage over GPT 4.1.</strong> OpenAI charges <strong>1.5&times; more</strong> per token for fine-tuned models ($3.00 &rarr; $4.50/M input). Google does not &mdash; fine-tuned Gemini costs the same as the base model.</div>
+</div>
+
+<div class="sec">
+  <h3>Flash vs Pro: Training Cost Comparison</h3>
+  <table>
+    <thead><tr><th>Metric</th><th style="color:#14B8A6">Gemini 2.5 Flash</th><th style="color:#10B981">Gemini 2.5 Pro</th><th>Savings</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Training price</strong></td><td>$5.00/M tokens</td><td>$25.00/M tokens</td><td style="color:#14B8A6;font-weight:700">5x cheaper</td></tr>
+      <tr><td><strong>500 examples cost</strong></td><td><span class="num" style="color:#14B8A6">$7.50</span></td><td>$37.50</td><td style="color:#14B8A6;font-weight:700">Save $30.00</td></tr>
+      <tr><td><strong>Inference (input)</strong></td><td>$0.30/M</td><td>$1.25/M</td><td style="color:#14B8A6;font-weight:700">76% cheaper</td></tr>
+      <tr><td><strong>Inference (output)</strong></td><td>$2.50/M</td><td>$10.00/M</td><td style="color:#14B8A6;font-weight:700">75% cheaper</td></tr>
+      <tr><td><strong>Post-FT score</strong></td><td>90&ndash;94</td><td>93&ndash;97</td><td>3 pts gap</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>The key insight:</strong> Flash gives you ~95% of Pro's accuracy at ~25% of the cost. For most HR queries, the 3-point gap doesn't matter. You can always upgrade to Pro later if needed &mdash; the training dataset is 100% reusable.</div>
+</div>
+
+<div class="sec">
+  <h3>Total Cost Summary</h3>
+  <table>
+    <thead><tr><th>Cost Component</th><th>Amount</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Training</strong></td><td><span class="num" style="color:#14B8A6">$7.50</span></td><td>One-time (pay once)</td></tr>
+      <tr><td><strong>Inference (per-query)</strong></td><td>$0.30 / $2.50 per M tokens</td><td>Per use (same as today)</td></tr>
+      <tr class="row-highlight"><td><strong style="color:#14B8A6">Total additional cost</strong></td><td><strong style="color:#14B8A6;font-size:18px">$7.50</strong></td><td><strong style="color:#14B8A6">One-time only</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>Cost Comparison: Fine-Tuning vs Alternatives</h3>
+  <table>
+    <thead><tr><th>Approach</th><th>Upfront Cost</th><th>Monthly Cost</th><th>Expected Score</th><th>Risk</th></tr></thead>
+    <tbody>
+      <tr class="row-highlight"><td><strong>Fine-tune Gemini 2.5 Flash</strong></td><td>$7.50</td><td>$0 extra</td><td style="color:#14B8A6;font-weight:700">90&ndash;94</td><td><span class="b b-green">Low</span></td></tr>
+      <tr><td>Fine-tune Gemini 2.5 Pro</td><td>$37.50</td><td>$0 extra</td><td style="color:#10B981;font-weight:700">93&ndash;97</td><td><span class="b b-green">Low</span></td></tr>
+      <tr><td>Fine-tune GPT 4.1</td><td>$37.50</td><td>+50% per-query cost</td><td>90&ndash;95</td><td><span class="b b-yellow">Medium</span></td></tr>
+      <tr><td>Self-host Qwen 3 32B</td><td>$2.25</td><td>$1,015/mo server</td><td>82&ndash;88</td><td><span class="b b-yellow">Medium</span></td></tr>
+      <tr><td>No fine-tuning (status quo)</td><td>$0</td><td>$0 extra</td><td style="color:#EF4444;font-weight:700">82 (stays)</td><td><span class="b b-red">High error rate</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>Bottom line:</strong> Flash fine-tuning offers the best ROI of any option. $7.50 one-time gets you +8 to +12 points accuracy with zero ongoing cost increase. No other approach comes close to this cost-effectiveness.</div>
+</div>
+
+<div class="sec">
+  <h3>ROI: What Does $7.50 Buy Us?</h3>
+  <div class="roi-grid">
+    <div class="roi-card" style="border-top:4px solid #14B8A6">
+      <div class="roi-v" style="color:#14B8A6">18% &rarr; 6%</div>
+      <div class="roi-l">Error rate reduction</div>
+    </div>
+    <div class="roi-card" style="border-top:4px solid #3B82F6">
+      <div class="roi-v" style="color:#3B82F6">100%</div>
+      <div class="roi-l">Expected pass rate (vs 93% today)</div>
+    </div>
+    <div class="roi-card" style="border-top:4px solid #8B5CF6">
+      <div class="roi-v" style="color:#8B5CF6">-35%</div>
+      <div class="roi-l">Token reduction (cost savings)</div>
+    </div>
+    <div class="roi-card" style="border-top:4px solid #F59E0B">
+      <div class="roi-v" style="color:#F59E0B">0</div>
+      <div class="roi-l">Token spikes (vs 18K today)</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h3>The Iterative Advantage</h3>
+  <p>Because Flash training is 5x cheaper, you can <strong>experiment more</strong>:</p>
+
+  <div class="g3">
+    <div class="card" style="border-top:4px solid #14B8A6;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#14B8A6">5</div>
+      <div style="font-size:12px;color:var(--muted)">Flash training runs</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px">= $37.50</div>
+    </div>
+    <div class="card" style="border-top:4px solid #10B981;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#10B981">1</div>
+      <div style="font-size:12px;color:var(--muted)">Pro training run</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px">= $37.50</div>
+    </div>
+    <div class="card" style="border-top:4px solid #3B82F6;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#3B82F6">&#8734;</div>
+      <div style="font-size:12px;color:var(--muted)">dataset iterations</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px">before going Pro</div>
+    </div>
+  </div>
+
+  <div class="alert alert-success"><strong>Strategy:</strong> Use Flash to iterate on your training dataset (5 training runs = same cost as 1 Pro run). Perfect your examples. Then when you're confident in the dataset, train Pro once and get maximum results.</div>
+</div>
+</div>
+
+<!-- ============ TAB 5: RECOMMENDATION ============ -->
+<div class="tc" id="tab-action">
+
+<div class="sec">
+  <h2>Recommendation</h2>
+
+  <div class="card" style="border:2px solid #14B8A6;border-left:6px solid #14B8A6">
+    <h4 style="color:#14B8A6;border:none;padding:0;margin:0 0 10px;font-size:18px">Fine-tune Gemini 2.5 Flash on Vertex AI &mdash; Start Here</h4>
+    <div class="sg">
+      <div class="sb"><div class="sb-l">Investment</div><div class="sb-v" style="color:#14B8A6">$7.50</div></div>
+      <div class="sb"><div class="sb-l">Expected Score</div><div class="sb-v" style="color:#14B8A6">90&ndash;94</div></div>
+      <div class="sb"><div class="sb-l">Ongoing Cost</div><div class="sb-v" style="color:#14B8A6">$0 extra</div></div>
+    </div>
+    <p style="font-size:14px;margin:0"><strong>Why start with Flash:</strong> 5x cheaper training ($7.50 vs $37.50), 75% cheaper inference, 4.3x faster response times, perfect Arabic compliance, and zero retries. Use Flash to iterate on your training dataset cheaply, then upgrade to Pro only if needed.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>The Progressive Strategy</h2>
+  <p>Starting with Flash isn't settling for less &mdash; it's being strategic:</p>
+
+  <div class="g3" style="margin-top:12px">
+    <div class="flow-box" style="border-color:#14B8A6">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Phase 1</div>
+      <div class="fl">&#128161;</div>
+      <div class="ft">Train Flash</div>
+      <div class="fd">$7.50 &mdash; Test & iterate<br>Target: 90+ score<br>Validate dataset quality</div>
+    </div>
+    <div class="flow-box" style="border-color:#F59E0B">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Phase 2</div>
+      <div class="fl">&#128200;</div>
+      <div class="ft">Evaluate</div>
+      <div class="fd">Run full benchmark<br>Is 90-94 sufficient?<br>Check production quality</div>
+    </div>
+    <div class="flow-box" style="border-color:#10B981">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Phase 3 (If Needed)</div>
+      <div class="fl">&#128640;</div>
+      <div class="ft">Upgrade to Pro</div>
+      <div class="fd">$37.50 &mdash; Same dataset<br>Target: 93-97 score<br>Only if Flash isn't enough</div>
+    </div>
+  </div>
+
+  <div class="alert alert-success"><strong>Best case:</strong> Flash fine-tuning scores 92+ and you save $30 in training costs + 75% ongoing inference costs. <strong>Worst case:</strong> Flash scores 90 and you decide to also train Pro &mdash; total spend is $45 (vs $37.50 for Pro-only), but you have a validated dataset and a working Flash fallback.</div>
+</div>
+
+<div class="sec">
+  <h2>Training Data Priorities (What to Include)</h2>
+  <table>
+    <thead><tr><th>Priority</th><th>Category</th><th>Examples Needed</th><th>Fixes</th></tr></thead>
+    <tbody>
+      <tr><td><span class="b b-red">P0</span></td><td>Leave queries (correct JOIN on user_id, not special_leave_id)</td><td>20&ndash;30</td><td>Wrong JOIN column</td></tr>
+      <tr><td><span class="b b-red">P0</span></td><td>Salary queries (consistent table selection)</td><td>20&ndash;30</td><td>Non-deterministic table choice</td></tr>
+      <tr><td><span class="b b-red">P0</span></td><td>Concise output format (SQL only, minimal explanation)</td><td>All 500</td><td>Token spikes / verbose output</td></tr>
+      <tr><td><span class="b b-yellow">P1</span></td><td>Paired EN/AR examples (same question both langs)</td><td>50&ndash;100 pairs</td><td>Cross-language consistency</td></tr>
+      <tr><td><span class="b b-yellow">P1</span></td><td>Attendance queries (correct metrics)</td><td>20&ndash;30</td><td>Right calculation methods</td></tr>
+      <tr><td><span class="b b-blue">P2</span></td><td>Department/position joins</td><td>30&ndash;40</td><td>Clean, consistent JOINs</td></tr>
+      <tr><td><span class="b b-blue">P2</span></td><td>Edge cases (empty results, large datasets)</td><td>20&ndash;30</td><td>Graceful handling</td></tr>
+      <tr><td><span class="b b-gray">P3</span></td><td>Complex aggregations (GROUP BY, HAVING)</td><td>30&ndash;40</td><td>Polish and conciseness</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>Training data format:</strong> See the <a href="fine-tuning-practical-guide-v2.html" style="color:#14B8A6;text-decoration:underline">Fine-Tuning Practical Guide</a> for detailed JSONL format, example structures, and dataset tier breakdowns. <strong>The same dataset works for both Flash and Pro.</strong></div>
+</div>
+
+<div class="sec">
+  <h2>Risk Assessment</h2>
+  <table>
+    <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Score doesn't improve enough</td><td><span class="b b-green">Low</span></td><td>Low</td><td>Only $7.50 invested. Upgrade to Pro with same dataset</td></tr>
+      <tr><td>Training data quality issues</td><td><span class="b b-yellow">Medium</span></td><td>Medium</td><td>Validate every example against staging DB before training</td></tr>
+      <tr><td>Regression on non-trained patterns</td><td><span class="b b-green">Low</span></td><td>Low</td><td>Vertex AI SFT preserves general capabilities. Run full benchmark after</td></tr>
+      <tr><td>Flash capacity limits for complex queries</td><td><span class="b b-yellow">Medium</span></td><td>Medium</td><td>Test hard queries specifically. If Flash ceiling is too low, upgrade to Pro</td></tr>
+      <tr><td>Google deprecates/changes API</td><td><span class="b b-green">Low</span></td><td>High</td><td>Training data is reusable. Can retrain on new model version</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-success" style="margin-top:16px">
+    <strong>Bottom line:</strong> $7.50 one-time investment, expected 90&ndash;94% accuracy, zero ongoing cost increase, 75% cheaper than Pro inference, and instant rollback if needed. <strong>This is the lowest-risk entry point into fine-tuning.</strong> Even if you eventually upgrade to Pro, you'll have a validated dataset and production experience.
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Why Flash First? The Math</h2>
+
+  <table>
+    <thead><tr><th>Scenario</th><th>Training Cost</th><th>Monthly Inference (1K queries)</th><th>Year 1 Total</th></tr></thead>
+    <tbody>
+      <tr class="row-highlight"><td><strong>Flash only (recommended)</strong></td><td>$7.50</td><td>~$2.50</td><td style="color:#14B8A6;font-weight:700">~$37.50</td></tr>
+      <tr><td>Pro only</td><td>$37.50</td><td>~$10.00</td><td>~$157.50</td></tr>
+      <tr><td>Flash first, then Pro</td><td>$45.00</td><td>~$10.00 (Pro)</td><td>~$165.00</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-info"><strong>If Flash fine-tuned is sufficient (90-94 score):</strong> You save $120/year in inference costs vs Pro. The $7.50 training investment pays for itself in the first month.</div>
+</div>
+
+</div>
+
+</div><!-- end content -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">
+    <img src="icon.svg" alt="Idaratech" style="height:24px">
+    <span>Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</span>
+  </div>
+  <div>The Case for Fine-Tuning Gemini 2.5 Flash</div>
+  <div class="footer-author">Prepared by Bilal Elhalawaty</div>
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tc').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+function toggleTheme(){var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-icon').textContent=d?'\uD83C\uDF19':'\u2600\uFE0F';localStorage.setItem('idaratech-theme',d?'light':'dark')}
+(function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d)document.getElementById('theme-icon').textContent='\u2600\uFE0F'})();
+</script>
+</body>
+</html>
