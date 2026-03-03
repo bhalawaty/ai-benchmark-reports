@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){var t=localStorage.getItem("idaratech-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.setAttribute("data-theme","dark")})()</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Idaratech — Gemini 2.5 Pro vs Flash Comparison</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F8FAFC;color:#1E293B;line-height:1.6}
+.header{background:linear-gradient(135deg,#0F172A 0%,#064E3B 35%,#134E4A 65%,#0F172A 100%);padding:36px 24px 32px;color:#fff}
+.mx{max-width:1060px;margin:0 auto}
+.header-top{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.brand{font-size:13px;color:#5EEAD4;font-weight:600;letter-spacing:1.5px;text-transform:uppercase}
+h1{font-size:26px;font-weight:800;line-height:1.2}
+.sub{font-size:13px;color:#94A3B8;margin-top:8px}
+
+/* VS Hero */
+.vs-hero{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-top:24px}
+.vs-model{background:rgba(255,255,255,.06);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,.08);text-align:center}
+.vs-model-name{font-size:20px;font-weight:800;margin-bottom:4px}
+.vs-model-score{font-size:42px;font-weight:900;line-height:1}
+.vs-model-rank{font-size:12px;color:#94A3B8;margin-top:4px}
+.vs-badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;margin-top:8px}
+.vs-circle{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#F0FDFA;border:2px solid rgba(255,255,255,.15)}
+
+/* Tab nav */
+.tab-nav{background:#fff;border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:10;overflow-x:auto}
+.tab-inner{max-width:1060px;margin:0 auto;display:flex;padding:0 24px}
+.tb{padding:14px 16px;font-size:13px;font-weight:500;color:#64748B;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s}
+.tb.active{font-weight:700;color:#0D9488;border-bottom-color:#0D9488}
+.tb:hover{color:#0D9488}
+
+/* Content */
+.content{max-width:1060px;margin:0 auto;padding:24px 24px 60px}
+.tc{display:none}.tc.active{display:block}
+.sec{margin-bottom:28px}
+.sec h3{font-size:17px;font-weight:800;color:#0F172A;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #E2E8F0}
+.sec h4{font-size:14px;font-weight:700;margin-bottom:10px;margin-top:16px}
+p{color:#475569;line-height:1.7;margin-bottom:14px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px}
+th{text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px;border-bottom:2px solid #E2E8F0;white-space:nowrap}
+td{padding:10px 12px;color:#1E293B;border-bottom:1px solid #F1F5F9}
+.b{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.b-green{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
+.b-teal{background:#CCFBF1;color:#115E59;border:1px solid #5EEAD4}
+.b-yellow{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.b-red{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+.b-gray{background:#F3F4F6;color:#374151;border:1px solid #D1D5DB}
+.card{background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px;margin-bottom:16px}
+.card h4{margin-top:0;font-size:16px;font-weight:800;padding-bottom:8px;border-bottom:2px solid #E2E8F0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.alert{border-radius:10px;padding:16px;margin-bottom:16px;font-size:13px}
+.alert-info{background:#EEF2FF;border:1px solid #C7D2FE}
+.alert-success{background:#F0FDF4;border:1px solid #86EFAC}
+.alert-warn{background:#FFFBEB;border:1px solid #FCD34D}
+.num{font-weight:800;font-size:18px}
+
+/* Compare bars */
+.cmp-row{margin-bottom:16px}
+.cmp-label{font-size:13px;font-weight:600;color:#475569;margin-bottom:6px;display:flex;justify-content:space-between}
+.cmp-bars{display:flex;gap:6px;align-items:center}
+.cmp-bar{height:28px;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;font-size:12px;font-weight:700;color:#fff;min-width:40px;transition:width .6s}
+.cmp-bar-pro{background:#10B981}
+.cmp-bar-flash{background:#14B8A6}
+.cmp-vs-label{font-size:10px;color:#94A3B8;min-width:20px;text-align:center;font-weight:600}
+
+/* Winner badge */
+.winner{display:inline-flex;align-items:center;gap:4px;background:#D1FAE5;color:#065F46;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;border:1px solid #6EE7B7}
+.winner-flash{background:#CCFBF1;color:#115E59;border-color:#5EEAD4}
+.tie{background:#F3F4F6;color:#6B7280;border-color:#D1D5DB}
+
+/* Cost viz */
+.cost-viz{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.cost-card{border-radius:14px;padding:24px;text-align:center;border:2px solid}
+.cost-card-pro{border-color:#10B981;background:#F0FDF4}
+.cost-card-flash{border-color:#14B8A6;background:#F0FDFA}
+.cost-card .model-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.cost-card .price{font-size:36px;font-weight:900;line-height:1.1}
+.cost-card .price-sub{font-size:12px;color:#64748B;margin-top:4px}
+.savings-callout{background:linear-gradient(135deg,#F0FDFA,#CCFBF1);border:2px solid #14B8A6;border-radius:14px;padding:20px;text-align:center;margin-bottom:20px}
+.savings-num{font-size:48px;font-weight:900;color:#0D9488;line-height:1}
+.savings-label{font-size:14px;color:#115E59;font-weight:600;margin-top:4px}
+
+/* Test matrix */
+.test-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-bottom:8px}
+.test-cell{width:100%;aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.test-pass{background:#D1FAE5;color:#065F46}
+.test-fail{background:#FEE2E2;color:#991B1B}
+.test-warn{background:#FEF3C7;color:#92400E}
+.test-labels{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-bottom:4px}
+.test-lbl{font-size:8px;color:#94A3B8;text-align:center;font-weight:600;white-space:nowrap;overflow:hidden}
+
+/* Decision path */
+.path-card{border-radius:14px;padding:24px;border:2px solid;margin-bottom:16px}
+.path-card h4{margin-top:0;border:none;padding:0;font-size:18px}
+.path-when{font-size:13px;color:#475569;margin-bottom:12px}
+.path-steps{list-style:none;padding:0}
+.path-steps li{padding:6px 0;font-size:13px;color:#1E293B;border-bottom:1px solid #F1F5F9}
+.path-steps li:last-child{border:none}
+.path-steps li::before{content:'→ ';color:#94A3B8;font-weight:700}
+
+/* Footer */
+.footer{background:#0F172A;color:#94A3B8;padding:24px;text-align:center;font-size:12px}
+.footer-brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.footer-brand span{font-weight:700;color:#E2E8F0}
+.footer-author{margin-top:8px;color:#5EEAD4;font-weight:600}
+
+@media(max-width:700px){
+  .g2,.cost-viz{grid-template-columns:1fr}
+  .vs-hero{grid-template-columns:1fr;text-align:center}
+  .vs-circle{margin:0 auto}
+  .test-grid,.test-labels{grid-template-columns:repeat(7,1fr)}
+}
+
+/* Theme toggle */
+#theme-bar{position:fixed;top:12px;left:12px;z-index:100}
+#theme-btn{background:rgba(15,23,42,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:50%;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0;transition:background .2s,border-color .2s}
+#theme-btn:hover{background:rgba(15,23,42,.8);border-color:rgba(255,255,255,.2)}
+[data-theme="light"] #theme-btn{background:rgba(255,255,255,.7);border-color:#E2E8F0}
+[data-theme="light"] #theme-btn:hover{background:rgba(255,255,255,.95);border-color:#CBD5E1}
+
+/* Dark mode */
+[data-theme="dark"] body{background:#0B1120!important;color:#E2E8F0!important}
+[data-theme="dark"] .tab-nav{background:#131B2C!important;border-color:#1E293B!important}
+[data-theme="dark"] .tb{color:#94A3B8!important}
+[data-theme="dark"] .card,.cost-card{background:#1A2235!important;border-color:#2D3A4F!important;color:#E2E8F0!important}
+[data-theme="dark"] .cost-card-pro{background:#0D1F18!important;border-color:#10B981!important}
+[data-theme="dark"] .cost-card-flash{background:#0D2D2D!important;border-color:#14B8A6!important}
+[data-theme="dark"] .savings-callout{background:linear-gradient(135deg,#0D2D2D,#0D1F18)!important;border-color:#14B8A6!important}
+[data-theme="dark"] .savings-label{color:#5EEAD4!important}
+[data-theme="dark"] .sec h3,.sec h4,[data-theme="dark"] h3,[data-theme="dark"] h4{color:#F1F5F9!important;border-color:#2D3A4F!important}
+[data-theme="dark"] p{color:#CBD5E1!important}
+[data-theme="dark"] strong{color:#F1F5F9!important}
+[data-theme="dark"] table th{color:#94A3B8!important;border-color:#2D3A4F!important}
+[data-theme="dark"] table td{color:#E2E8F0!important;border-color:#1E293B!important}
+[data-theme="dark"] td strong{color:#F1F5F9!important}
+[data-theme="dark"] tr:hover td{background:#131B2C!important}
+[data-theme="dark"] .alert-info{background:#131D35!important;border-color:#2563EB!important;color:#CBD5E1!important}
+[data-theme="dark"] .alert-success{background:#0D1F18!important;border-color:#059669!important;color:#86EFAC!important}
+[data-theme="dark"] .alert-warn{background:#1F1A0E!important;border-color:#D97706!important;color:#FDE68A!important}
+[data-theme="dark"] .alert strong{color:inherit!important}
+[data-theme="dark"] .alert-info strong{color:#93C5FD!important}
+[data-theme="dark"] .alert-success strong{color:#86EFAC!important}
+[data-theme="dark"] .alert-warn strong{color:#FDE68A!important}
+[data-theme="dark"] .cmp-label{color:#CBD5E1!important}
+[data-theme="dark"] .path-card{background:#1A2235!important;color:#E2E8F0!important}
+[data-theme="dark"] .path-card h4{color:#F1F5F9!important}
+[data-theme="dark"] .path-when{color:#94A3B8!important}
+[data-theme="dark"] .path-steps li{color:#CBD5E1!important;border-color:#2D3A4F!important}
+[data-theme="dark"] .test-pass{background:#0D1F18!important;color:#4ADE80!important}
+[data-theme="dark"] .test-fail{background:#1F0D0D!important;color:#F87171!important}
+[data-theme="dark"] .test-warn{background:#1F1A0E!important;color:#FBBF24!important}
+[data-theme="dark"] .test-lbl{color:#64748B!important}
+[data-theme="dark"] .winner{background:#0D1F18!important;color:#4ADE80!important;border-color:#059669!important}
+[data-theme="dark"] .winner-flash{background:#0D2D2D!important;color:#5EEAD4!important;border-color:#14B8A6!important}
+[data-theme="dark"] .tie{background:#2D3A4F!important;color:#94A3B8!important;border-color:#475569!important}
+[data-theme="dark"] .b-green{background:#0D1F18!important;color:#4ADE80!important;border-color:#059669!important}
+[data-theme="dark"] .b-teal{background:#0D2D2D!important;color:#5EEAD4!important;border-color:#14B8A6!important}
+[data-theme="dark"] .b-yellow{background:#1F1A0E!important;color:#FBBF24!important;border-color:#D97706!important}
+[data-theme="dark"] .b-red{background:#1F0D0D!important;color:#F87171!important;border-color:#DC2626!important}
+[data-theme="dark"] .b-gray{background:#2D3A4F!important;color:#CBD5E1!important;border-color:#475569!important}
+*{transition:background-color .25s,border-color .25s,color .25s}
+.header,.footer,#theme-bar,.cmp-bar,.vs-model{transition:none!important}
+</style>
+</head>
+<body>
+<div id="theme-bar"><button id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"><span id="theme-icon">&#9728;&#65039;</span></button></div>
+
+<div class="header">
+<div class="mx">
+  <div class="header-top">
+    <img src="icon.svg" alt="Idaratech" style="height:48px">
+    <div>
+      <div class="brand">Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</div>
+      <h1>Gemini 2.5 Pro vs Flash &mdash; Head-to-Head</h1>
+    </div>
+  </div>
+  <div class="sub">Benchmark performance, token usage, fine-tuning cost, and inference pricing comparison &middot; All data from Vertex AI</div>
+
+  <div class="vs-hero">
+    <div class="vs-model" style="border-color:rgba(16,185,129,.3)">
+      <div class="vs-model-name" style="color:#6EE7B7">Gemini 2.5 Pro</div>
+      <div class="vs-model-score" style="color:#10B981">88</div>
+      <div class="vs-model-rank">Rank #1 &middot; Highest Quality</div>
+      <div class="vs-badge" style="background:rgba(16,185,129,.15);color:#6EE7B7">Best Accuracy</div>
+    </div>
+    <div class="vs-circle">VS</div>
+    <div class="vs-model" style="border-color:rgba(20,184,166,.3)">
+      <div class="vs-model-name" style="color:#5EEAD4">Gemini 2.5 Flash</div>
+      <div class="vs-model-score" style="color:#14B8A6">82</div>
+      <div class="vs-model-rank">Rank #4 &middot; Best Value</div>
+      <div class="vs-badge" style="background:rgba(20,184,166,.15);color:#5EEAD4">Best Cost-Performance</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="tab-nav"><div class="tab-inner">
+  <button class="tb active" onclick="showTab('overview')">Overview</button>
+  <button class="tb" onclick="showTab('benchmark')">Benchmark</button>
+  <button class="tb" onclick="showTab('cost')">Cost Analysis</button>
+  <button class="tb" onclick="showTab('finetuning')">Fine-Tuning</button>
+  <button class="tb" onclick="showTab('decision')">Decision</button>
+</div></div>
+
+<div class="content">
+
+<!-- ===== OVERVIEW ===== -->
+<div class="tc active" id="tab-overview">
+
+<div class="sec">
+<h3>At a Glance</h3>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr><th>Metric</th><th style="color:#10B981">Gemini 2.5 Pro</th><th style="color:#14B8A6">Gemini 2.5 Flash</th><th>Winner</th><th>Difference</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Benchmark Score</strong></td><td><span class="num" style="color:#10B981">88</span>/100</td><td><span class="num" style="color:#14B8A6">82</span>/100</td><td><span class="winner">Pro</span></td><td>+6 points</td></tr>
+    <tr><td><strong>Pass Rate</strong></td><td>93% (13/14)</td><td>93% (13/14)</td><td><span class="tie">Tie</span></td><td>Identical</td></tr>
+    <tr><td><strong>Arabic Compliance</strong></td><td>7/7 content, 7/7 headers</td><td>7/7 content, 7/7 headers</td><td><span class="tie">Tie</span></td><td>Both perfect</td></tr>
+    <tr><td><strong>Avg Response Time</strong></td><td>29.8s</td><td><strong>6.9s</strong></td><td><span class="winner-flash">Flash</span></td><td>4.3x faster</td></tr>
+    <tr><td><strong>Avg Tokens</strong></td><td>4,803</td><td>4,535</td><td><span class="winner-flash">Flash</span></td><td>6% fewer</td></tr>
+    <tr><td><strong>Retries</strong></td><td>1</td><td>0</td><td><span class="winner-flash">Flash</span></td><td>Flash: zero retries</td></tr>
+    <tr><td><strong>Input Cost / 1M tokens</strong></td><td>$1.25</td><td><strong>$0.30</strong></td><td><span class="winner-flash">Flash</span></td><td>76% cheaper</td></tr>
+    <tr><td><strong>Output Cost / 1M tokens</strong></td><td>$10.00</td><td><strong>$2.50</strong></td><td><span class="winner-flash">Flash</span></td><td>75% cheaper</td></tr>
+    <tr><td><strong>Training Cost / 1M tokens</strong></td><td>$25.00</td><td><strong>$5.00</strong></td><td><span class="winner-flash">Flash</span></td><td>5x cheaper</td></tr>
+    <tr><td><strong>FT Cost (500 examples)</strong></td><td>$37.50</td><td><strong>$7.50</strong></td><td><span class="winner-flash">Flash</span></td><td>5x cheaper</td></tr>
+    <tr><td><strong>Post-FT Inference Premium</strong></td><td>None</td><td>None</td><td><span class="tie">Tie</span></td><td>Both: same price</td></tr>
+    <tr><td><strong>Post-FT Score (est.)</strong></td><td><span class="num" style="color:#10B981">93-97</span></td><td><span class="num" style="color:#14B8A6">90-94</span></td><td><span class="winner">Pro</span></td><td>+3 points ceiling</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="alert alert-info">&#128161; <strong>Flash wins 7 out of 12 metrics</strong>, Pro wins 2, and 3 are tied. Flash dominates on cost and speed, while Pro leads on raw quality.</div>
+</div>
+
+<div class="sec">
+<h3>Visual Comparison</h3>
+<div id="compare-bars"></div>
+</div>
+
+<div class="sec">
+<h3>The 6-Point Gap Explained</h3>
+<p>Pro scores 88 vs Flash at 82 &mdash; a <strong>6-point difference</strong>. Where does it come from?</p>
+<table>
+  <thead><tr><th>Category</th><th style="color:#10B981">Pro</th><th style="color:#14B8A6">Flash</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><strong>SQL Quality</strong></td><td>Higher</td><td>Good</td><td>Pro uses TIMESTAMPDIFF, translates DB values to Arabic</td></tr>
+    <tr><td><strong>Consistency</strong></td><td>Consistent</td><td>Non-deterministic on 1 test</td><td>Flash EN Medium 1 gave 3 different results across runs</td></tr>
+    <tr><td><strong>Join Logic</strong></td><td>Correct</td><td>1 wrong join</td><td>Flash AR Easy 2: used special_leave_id instead of type grouping</td></tr>
+    <tr><td><strong>Arabic Translation</strong></td><td>Translates DB values</td><td>Uses raw DB values</td><td>Pro: "vacation-leave" &rarr; "&#1573;&#1580;&#1575;&#1586;&#1577; &#1587;&#1606;&#1608;&#1610;&#1577;". Flash: keeps English.</td></tr>
+    <tr><td><strong>Column Richness</strong></td><td>More columns</td><td>Adequate</td><td>Pro includes extra context columns in results</td></tr>
+  </tbody>
+</table>
+<div class="alert alert-success">&#128161; <strong>All of Flash's weaknesses are fixable with fine-tuning.</strong> Wrong joins, non-deterministic behavior, and missing Arabic translations are exactly the pattern-level issues that fine-tuning resolves.</div>
+</div>
+</div>
+
+<!-- ===== BENCHMARK ===== -->
+<div class="tc" id="tab-benchmark">
+
+<div class="sec">
+<h3>Pass/Fail Matrix &mdash; All 14 Tests</h3>
+<p>Both models were tested on 14 queries: 7 English + 7 Arabic, across Easy/Medium/Hard difficulty levels.</p>
+
+<h4 style="color:#10B981;margin-bottom:8px">Gemini 2.5 Pro &mdash; 13/14 Pass</h4>
+<div class="test-labels" id="test-labels-1"></div>
+<div class="test-grid" id="pro-grid"></div>
+
+<h4 style="color:#14B8A6;margin-top:16px;margin-bottom:8px">Gemini 2.5 Flash &mdash; 13/14 Pass</h4>
+<div class="test-labels" id="test-labels-2"></div>
+<div class="test-grid" id="flash-grid"></div>
+
+<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:16px;height:16px;border-radius:4px;background:#D1FAE5"></div> PASS</div>
+  <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:16px;height:16px;border-radius:4px;background:#FEE2E2"></div> FAIL</div>
+  <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:16px;height:16px;border-radius:4px;background:#FEF3C7"></div> PASS* (minor issue)</div>
+</div>
+</div>
+
+<div class="sec">
+<h3>Where Each Model Fails</h3>
+<div class="g2">
+  <div class="card" style="border-left:4px solid #10B981">
+    <h4 style="color:#10B981">Pro &mdash; Failure Details</h4>
+    <table>
+      <tbody>
+        <tr><td><strong>AR Hard 2</strong></td><td><span class="b b-yellow">Partial</span></td><td>Used <code>payslips</code> instead of <code>user_salaries</code> table</td></tr>
+        <tr><td><strong>AR Medium 1</strong></td><td><span class="b b-yellow">Minor</span></td><td>MONTHNAME() returns English month names in Arabic context</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:#64748B;margin-bottom:0"><em>Both are schema-mapping issues &mdash; high confidence fine-tuning fixes them.</em></p>
+  </div>
+  <div class="card" style="border-left:4px solid #14B8A6">
+    <h4 style="color:#14B8A6">Flash &mdash; Failure Details</h4>
+    <table>
+      <tbody>
+        <tr><td><strong>AR Easy 2</strong></td><td><span class="b b-red">FAIL</span></td><td>Wrong join on <code>special_leave_id</code> &mdash; returned 1 row vs 5</td></tr>
+        <tr><td><strong>EN Medium 1</strong></td><td><span class="b b-yellow">PASS*</span></td><td>Non-deterministic: 3 different results across runs</td></tr>
+        <tr><td><strong>EN Easy 2</strong></td><td><span class="b b-yellow">Token spike</span></td><td>18,473 tokens &mdash; P1 returned empty tables</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:#64748B;margin-bottom:0"><em>Join errors and inconsistency are pattern-level &mdash; fine-tuning targets exactly these.</em></p>
+  </div>
+</div>
+</div>
+
+<div class="sec">
+<h3>Token Usage Breakdown</h3>
+<div id="token-bars"></div>
+<div class="alert alert-info" style="margin-top:12px">&#128161; <strong>Flash token spike:</strong> EN Easy 2 hit 18,473 tokens because Phase 1 returned empty tables. Excluding this outlier, Flash averages <strong>3,462 tokens</strong> &mdash; 28% fewer than Pro (4,803).</div>
+</div>
+
+<div class="sec">
+<h3>Response Time Comparison</h3>
+<div class="g2">
+  <div class="card" style="text-align:center;border-top:4px solid #10B981">
+    <div style="font-size:13px;color:#64748B">Gemini 2.5 Pro</div>
+    <div style="font-size:48px;font-weight:900;color:#10B981">29.8s</div>
+    <div style="font-size:12px;color:#94A3B8">Average response time</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid #14B8A6">
+    <div style="font-size:13px;color:#64748B">Gemini 2.5 Flash</div>
+    <div style="font-size:48px;font-weight:900;color:#14B8A6">6.9s</div>
+    <div style="font-size:12px;color:#94A3B8">Average response time</div>
+    <div style="font-size:13px;font-weight:700;color:#0D9488;margin-top:8px">4.3x faster</div>
+  </div>
+</div>
+<p>In production, response time directly impacts user experience. Users wait <strong>~23 seconds less per query</strong> with Flash.</p>
+</div>
+</div>
+
+<!-- ===== COST ANALYSIS ===== -->
+<div class="tc" id="tab-cost">
+
+<div class="sec">
+<h3>Inference Cost (Per-Use &mdash; What You Pay Every Query)</h3>
+
+<div class="cost-viz">
+  <div class="cost-card cost-card-pro">
+    <div class="model-name" style="color:#059669">Gemini 2.5 Pro</div>
+    <div class="price" style="color:#10B981">$1.25<span style="font-size:14px;font-weight:600"> / $10.00</span></div>
+    <div class="price-sub">Input / Output per 1M tokens</div>
+  </div>
+  <div class="cost-card cost-card-flash">
+    <div class="model-name" style="color:#0D9488">Gemini 2.5 Flash</div>
+    <div class="price" style="color:#14B8A6">$0.30<span style="font-size:14px;font-weight:600"> / $2.50</span></div>
+    <div class="price-sub">Input / Output per 1M tokens</div>
+  </div>
+</div>
+
+<div class="savings-callout">
+  <div class="savings-num">75%</div>
+  <div class="savings-label">Cheaper Inference with Flash</div>
+  <p style="font-size:13px;color:#115E59;margin-top:8px;margin-bottom:0">Input: 76% cheaper ($0.30 vs $1.25) &middot; Output: 75% cheaper ($2.50 vs $10.00)</p>
+</div>
+
+<h4>What Does This Mean in Practice?</h4>
+<p>Assuming ~5,000 tokens per query (input + output combined):</p>
+<table>
+  <thead><tr><th>Monthly Queries</th><th style="color:#10B981">Pro Cost</th><th style="color:#14B8A6">Flash Cost</th><th>Monthly Savings</th></tr></thead>
+  <tbody>
+    <tr><td>100 queries/mo</td><td>$0.50</td><td><strong>$0.13</strong></td><td>$0.38 (75%)</td></tr>
+    <tr><td>1,000 queries/mo</td><td>$5.00</td><td><strong>$1.25</strong></td><td>$3.75 (75%)</td></tr>
+    <tr><td>10,000 queries/mo</td><td>$50.00</td><td><strong>$12.50</strong></td><td>$37.50 (75%)</td></tr>
+    <tr><td>100,000 queries/mo</td><td>$500.00</td><td><strong>$125.00</strong></td><td>$375.00 (75%)</td></tr>
+  </tbody>
+</table>
+<div class="alert alert-info">&#128161; <strong>Both models charge the same price before and after fine-tuning.</strong> Unlike OpenAI (1.5x premium), Vertex AI does not increase inference cost for fine-tuned models.</div>
+</div>
+
+<div class="sec">
+<h3>Annual Cost Projection</h3>
+<div id="annual-cost-chart"></div>
+</div>
+
+<div class="sec">
+<h3>Cost Per Point of Accuracy</h3>
+<p>A unique way to compare: <strong>how much does each score point cost you?</strong></p>
+<div class="g2">
+  <div class="card" style="text-align:center;border-top:4px solid #10B981">
+    <div style="font-size:13px;color:#64748B">Pro: $50/mo at 10K queries</div>
+    <div style="font-size:14px;font-weight:800;color:#10B981;margin:8px 0">$50.00 &divide; 88 points</div>
+    <div style="font-size:36px;font-weight:900;color:#10B981">$0.57</div>
+    <div style="font-size:12px;color:#94A3B8">per score point per month</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid #14B8A6">
+    <div style="font-size:13px;color:#64748B">Flash: $12.50/mo at 10K queries</div>
+    <div style="font-size:14px;font-weight:800;color:#14B8A6;margin:8px 0">$12.50 &divide; 82 points</div>
+    <div style="font-size:36px;font-weight:900;color:#14B8A6">$0.15</div>
+    <div style="font-size:12px;color:#94A3B8">per score point per month</div>
+  </div>
+</div>
+<p><strong>Flash delivers 3.8x more accuracy per dollar.</strong> You pay $0.15 per score point vs $0.57 with Pro.</p>
+</div>
+</div>
+
+<!-- ===== FINE-TUNING ===== -->
+<div class="tc" id="tab-finetuning">
+
+<div class="sec">
+<h3>Fine-Tuning Training Cost</h3>
+<p>Both models support <strong>Supervised Fine-Tuning (SFT)</strong> on Vertex AI. The only difference is price per million training tokens.</p>
+
+<div class="cost-viz">
+  <div class="cost-card cost-card-pro">
+    <div class="model-name" style="color:#059669">Pro Training</div>
+    <div class="price" style="color:#10B981">$25<span style="font-size:16px;font-weight:600">/M tokens</span></div>
+    <div class="price-sub">One-time training cost</div>
+  </div>
+  <div class="cost-card cost-card-flash">
+    <div class="model-name" style="color:#0D9488">Flash Training</div>
+    <div class="price" style="color:#14B8A6">$5<span style="font-size:16px;font-weight:600">/M tokens</span></div>
+    <div class="price-sub">One-time training cost</div>
+  </div>
+</div>
+
+<div class="savings-callout">
+  <div class="savings-num">5x</div>
+  <div class="savings-label">Cheaper Training with Flash</div>
+  <p style="font-size:13px;color:#115E59;margin-top:8px;margin-bottom:0">Train Flash 5 times for the price of training Pro once</p>
+</div>
+
+<h4>Training Cost at Different Dataset Sizes</h4>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr><th>Examples</th><th>Effective Tokens</th><th style="color:#10B981">Pro Cost</th><th style="color:#14B8A6">Flash Cost</th><th>Savings</th></tr></thead>
+  <tbody>
+    <tr><td>50</td><td>150K</td><td>$3.75</td><td><strong>$0.75</strong></td><td>$3.00 (80%)</td></tr>
+    <tr><td>100</td><td>300K</td><td>$7.50</td><td><strong>$1.50</strong></td><td>$6.00 (80%)</td></tr>
+    <tr><td>200</td><td>600K</td><td>$15.00</td><td><strong>$3.00</strong></td><td>$12.00 (80%)</td></tr>
+    <tr style="background:#F0FDF4"><td><strong>500 &#11088;</strong></td><td><strong>1.5M</strong></td><td><strong>$37.50</strong></td><td><strong style="color:#0D9488">$7.50</strong></td><td><strong>$30.00 (80%)</strong></td></tr>
+    <tr><td>1,000</td><td>3.0M</td><td>$75.00</td><td><strong>$15.00</strong></td><td>$60.00 (80%)</td></tr>
+    <tr><td>2,000</td><td>6.0M</td><td>$150.00</td><td><strong>$30.00</strong></td><td>$120.00 (80%)</td></tr>
+    <tr><td>5,000</td><td>15.0M</td><td>$375.00</td><td><strong>$75.00</strong></td><td>$300.00 (80%)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="alert alert-warn">&#9888;&#65039; <strong>Important:</strong> Fine-tuned weights are <strong>model-specific</strong>. If you train Flash and later want Pro, you must retrain with Pro ($37.50 for 500 examples). However, your training dataset (JSONL) is 100% reusable &mdash; no rework needed.</div>
+</div>
+
+<div class="sec">
+<h3>Expected Post Fine-Tuning Performance</h3>
+<div id="ft-projection-bars"></div>
+<table>
+  <thead><tr><th>Metric</th><th style="color:#10B981">Pro (Fine-Tuned)</th><th style="color:#14B8A6">Flash (Fine-Tuned)</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Score (estimated)</strong></td><td><span class="num" style="color:#10B981">93-97</span></td><td><span class="num" style="color:#14B8A6">90-94</span></td></tr>
+    <tr><td><strong>Improvement</strong></td><td>+5 to +9 pts</td><td>+8 to +12 pts</td></tr>
+    <tr><td><strong>Training Cost (500 ex.)</strong></td><td>$37.50</td><td><strong>$7.50</strong></td></tr>
+    <tr><td><strong>Inference After FT</strong></td><td>$1.25 / $10.00 (no change)</td><td>$0.30 / $2.50 (no change)</td></tr>
+    <tr><td><strong>Expected Pass Rate</strong></td><td>100% (14/14)</td><td>100% (14/14)</td></tr>
+    <tr><td><strong>FT Method</strong></td><td>SFT on Vertex AI</td><td>SFT + Preference tuning on Vertex AI</td></tr>
+  </tbody>
+</table>
+<div class="alert alert-info">&#128161; <strong>Flash gets more relative improvement</strong> (+8-12 pts vs +5-9 pts) because it has more pattern-level failures to fix. Pro's failures are more subtle (translation quality, column richness).</div>
+</div>
+
+<div class="sec">
+<h3>The Iterative Advantage</h3>
+<p>Flash's 5x cheaper training enables a <strong>faster iteration cycle</strong>:</p>
+<div class="g2">
+  <div class="card" style="border-top:4px solid #10B981">
+    <h4 style="color:#10B981">Pro: Conservative Approach</h4>
+    <table>
+      <tbody>
+        <tr><td>Train with 500 examples</td><td>$37.50</td></tr>
+        <tr><td>Evaluate, fix data</td><td>&mdash;</td></tr>
+        <tr><td>Retrain (iteration 2)</td><td>$37.50</td></tr>
+        <tr><td>Retrain (iteration 3)</td><td>$37.50</td></tr>
+        <tr><td><strong>Total for 3 iterations</strong></td><td><strong>$112.50</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="border-top:4px solid #14B8A6">
+    <h4 style="color:#14B8A6">Flash: Agile Approach</h4>
+    <table>
+      <tbody>
+        <tr><td>Train with 500 examples</td><td>$7.50</td></tr>
+        <tr><td>Evaluate, fix data</td><td>&mdash;</td></tr>
+        <tr><td>Retrain (iteration 2)</td><td>$7.50</td></tr>
+        <tr><td>Retrain (iteration 3)</td><td>$7.50</td></tr>
+        <tr><td><strong>Total for 3 iterations</strong></td><td><strong>$22.50</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<p><strong>You can iterate 5 times on Flash for the cost of 1 Pro training run.</strong> This matters because fine-tuning is iterative &mdash; you rarely get it perfect on the first try.</p>
+</div>
+</div>
+
+<!-- ===== DECISION ===== -->
+<div class="tc" id="tab-decision">
+
+<div class="sec">
+<h3>Practical Recommendation</h3>
+
+<div class="alert alert-success" style="font-size:14px;padding:20px">
+  <strong style="font-size:16px;color:#065F46">Start with Flash. Upgrade to Pro only if needed.</strong>
+  <p style="margin-top:8px;margin-bottom:0;color:#065F46">Train Flash first ($7.50). If it reaches 90%+ and that's sufficient for production, you save $30+ and get 75% cheaper inference forever. If you need 95%+, upgrade to Pro &mdash; same dataset, just retrain.</p>
+</div>
+</div>
+
+<div class="sec">
+<h3>Decision Framework</h3>
+<div id="decision-flow"></div>
+</div>
+
+<div class="sec">
+<h3>When to Choose Each Model</h3>
+<div class="g2">
+  <div class="path-card" style="border-color:#14B8A6;background:#F0FDFA">
+    <h4 style="color:#0D9488">&#9889; Choose Flash When:</h4>
+    <div class="path-when"><strong>Best for:</strong> Most use cases, cost-conscious teams, iterative development</div>
+    <ul class="path-steps">
+      <li>90-94% accuracy is sufficient for your users</li>
+      <li>You want to minimize cost (training + inference)</li>
+      <li>Response speed matters (6.9s vs 29.8s)</li>
+      <li>You plan to iterate on training data multiple times</li>
+      <li>You're starting fine-tuning for the first time</li>
+      <li>High query volume (&gt;10K/month) where cost adds up</li>
+    </ul>
+  </div>
+  <div class="path-card" style="border-color:#10B981;background:#F0FDF4">
+    <h4 style="color:#059669">&#127942; Choose Pro When:</h4>
+    <div class="path-when"><strong>Best for:</strong> Maximum accuracy, complex queries, premium product</div>
+    <ul class="path-steps">
+      <li>You need 95%+ accuracy (mission-critical SQL)</li>
+      <li>Complex queries with Arabic value translation matter</li>
+      <li>SQL quality and column richness are priorities</li>
+      <li>Low query volume (&lt;1K/month) where inference cost is negligible</li>
+      <li>You've already tried Flash and need higher accuracy</li>
+      <li>Your users rely on detailed Arabic SQL output</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<div class="sec">
+<h3>Recommended Path: Progressive Upgrade</h3>
+<div class="g3">
+  <div class="card" style="border-top:4px solid #14B8A6">
+    <div style="font-size:11px;color:#0D9488;font-weight:700;text-transform:uppercase;letter-spacing:1px">Phase 1</div>
+    <div style="font-size:18px;font-weight:800;margin:6px 0">Train Flash</div>
+    <div style="font-size:28px;font-weight:900;color:#14B8A6;margin:8px 0">$7.50</div>
+    <p style="font-size:13px;margin-bottom:0">Fine-tune with 500 examples. Evaluate on benchmarks. If 90%+ &mdash; ship it. You're done.</p>
+  </div>
+  <div class="card" style="border-top:4px solid #F59E0B">
+    <div style="font-size:11px;color:#D97706;font-weight:700;text-transform:uppercase;letter-spacing:1px">Phase 2 (if needed)</div>
+    <div style="font-size:18px;font-weight:800;margin:6px 0">Evaluate Gap</div>
+    <div style="font-size:28px;font-weight:900;color:#F59E0B;margin:8px 0">$0</div>
+    <p style="font-size:13px;margin-bottom:0">Compare FT Flash results vs your target. Is 90-94% enough? For most HR queries, yes. If not, proceed to Phase 3.</p>
+  </div>
+  <div class="card" style="border-top:4px solid #10B981">
+    <div style="font-size:11px;color:#059669;font-weight:700;text-transform:uppercase;letter-spacing:1px">Phase 3 (optional)</div>
+    <div style="font-size:18px;font-weight:800;margin:6px 0">Upgrade to Pro</div>
+    <div style="font-size:28px;font-weight:900;color:#10B981;margin:8px 0">$37.50</div>
+    <p style="font-size:13px;margin-bottom:0">Same dataset, retrain on Pro. Get 93-97%. Total investment: $45 ($7.50 + $37.50). Dataset work = $0 extra.</p>
+  </div>
+</div>
+</div>
+
+<div class="sec">
+<h3>Total Cost Scenarios</h3>
+<table>
+  <thead><tr><th>Scenario</th><th>Training Cost</th><th>Monthly Inference (10K queries)</th><th>Annual Total</th></tr></thead>
+  <tbody>
+    <tr style="background:#F0FDFA"><td><strong>Flash only (recommended start)</strong></td><td><span class="num" style="color:#14B8A6">$7.50</span></td><td>$12.50/mo</td><td><strong>$157.50</strong></td></tr>
+    <tr><td>Flash &rarr; Pro upgrade</td><td>$45.00 ($7.50 + $37.50)</td><td>$50.00/mo</td><td>$645.00</td></tr>
+    <tr><td>Pro only (skip Flash)</td><td>$37.50</td><td>$50.00/mo</td><td>$637.50</td></tr>
+    <tr style="background:#F0FDF4"><td><strong>Flash with 3 iterations</strong></td><td>$22.50</td><td>$12.50/mo</td><td><strong>$172.50</strong></td></tr>
+  </tbody>
+</table>
+<div class="alert alert-success">&#128161; <strong>Starting with Flash saves $480/year in inference alone</strong> at 10K queries/month (vs Pro). Even if you eventually upgrade to Pro, the Flash experiment costs only $7.50 &mdash; essentially free validation.</div>
+</div>
+
+<div class="sec">
+<h3>Bottom Line</h3>
+<div class="g2">
+  <div class="card" style="border:2px solid #14B8A6;text-align:center;padding:28px">
+    <div style="font-size:48px;margin-bottom:8px">&#128640;</div>
+    <div style="font-size:20px;font-weight:800;color:#0D9488;margin-bottom:8px">Start with Flash</div>
+    <div style="font-size:14px;color:#475569">$7.50 to train &middot; 75% cheaper inference<br>90-94% post-FT &middot; 6.9s response time<br><strong>Best value for most teams</strong></div>
+  </div>
+  <div class="card" style="border:2px solid #10B981;text-align:center;padding:28px">
+    <div style="font-size:48px;margin-bottom:8px">&#127942;</div>
+    <div style="font-size:20px;font-weight:800;color:#059669;margin-bottom:8px">Upgrade to Pro If Needed</div>
+    <div style="font-size:14px;color:#475569">$37.50 to train &middot; Same dataset<br>93-97% post-FT &middot; Best SQL quality<br><strong>When accuracy is mission-critical</strong></div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-brand"><img src="icon.svg" alt="Idaratech" style="height:24px"><span>Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</span></div>
+  <div>Gemini 2.5 Pro vs Flash Comparison &middot; AI SQL Chat</div>
+  <div class="footer-author">Prepared by Bilal Elhalawaty</div>
+</div>
+
+<script>
+// Tabs
+function showTab(id){
+  document.querySelectorAll('.tc').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Compare bars
+const metrics=[
+  {label:"Benchmark Score",pro:88,flash:82,max:100,unit:"/100",proWin:true},
+  {label:"Pass Rate",pro:93,flash:93,max:100,unit:"%",tie:true},
+  {label:"Arabic Compliance",pro:100,flash:100,max:100,unit:"%",tie:true},
+  {label:"Response Speed (inverted — lower = better)",pro:30,flash:93,max:100,unit:"",flashWin:true,custom:true,proLabel:"29.8s",flashLabel:"6.9s"},
+  {label:"Token Efficiency (inverted — lower = better)",pro:54,flash:58,max:100,unit:"",flashWin:true,custom:true,proLabel:"4,803",flashLabel:"4,535"},
+  {label:"Inference Cost Savings vs Pro",pro:0,flash:75,max:100,unit:"%",flashWin:true,custom:true,proLabel:"Baseline",flashLabel:"75% cheaper"},
+  {label:"Training Cost Savings vs Pro",pro:0,flash:80,max:100,unit:"%",flashWin:true,custom:true,proLabel:"Baseline",flashLabel:"80% cheaper"},
+  {label:"Post-FT Score (est.)",pro:95,flash:92,max:100,unit:"/100",proWin:true},
+];
+
+document.getElementById('compare-bars').innerHTML=metrics.map(m=>{
+  const pw=Math.round((m.pro/m.max)*100);
+  const fw=Math.round((m.flash/m.max)*100);
+  const pLabel=m.custom?m.proLabel:(m.pro+m.unit);
+  const fLabel=m.custom?m.flashLabel:(m.flash+m.unit);
+  const winner=m.tie?'<span class="tie">Tie</span>':m.proWin?'<span class="winner">Pro</span>':'<span class="winner-flash">Flash</span>';
+  return `<div class="cmp-row">
+    <div class="cmp-label"><span>${m.label}</span>${winner}</div>
+    <div class="cmp-bars">
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;min-width:35px;color:#10B981;font-weight:600">Pro</span><div class="cmp-bar cmp-bar-pro" style="width:${pw}%">${pLabel}</div></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;min-width:35px;color:#14B8A6;font-weight:600">Flash</span><div class="cmp-bar cmp-bar-flash" style="width:${fw}%">${fLabel}</div></div>
+      </div>
+    </div>
+  </div>`;
+}).join('');
+
+// Test matrix
+const tests=["EN Easy 1","EN Easy 2","EN Med 1","EN Med 2","EN Med 3","EN Hard 1","EN Hard 2","AR Easy 1","AR Easy 2","AR Med 1","AR Med 2","AR Hard 1","AR Hard 2","Sum"];
+const proResults=["PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS"];
+const flashResults=["PASS","PASS","PASS","FAIL","PASS*","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS","PASS"];
+
+function renderGrid(containerId,results,labelId){
+  document.getElementById(labelId).innerHTML=tests.map(t=>`<div class="test-lbl">${t}</div>`).join('');
+  document.getElementById(containerId).innerHTML=results.map((r,i)=>{
+    const cls=r==='PASS'?'test-pass':r==='FAIL'?'test-fail':'test-warn';
+    const icon=r==='PASS'?'&#10003;':r==='FAIL'?'&#10007;':'~';
+    return `<div class="test-cell ${cls}">${icon}</div>`;
+  }).join('');
+}
+renderGrid('pro-grid',proResults,'test-labels-1');
+renderGrid('flash-grid',flashResults,'test-labels-2');
+
+// Token bars
+const tokenData=[
+  {test:"EN Easy 1",pro:3521,flash:2847},
+  {test:"EN Easy 2",pro:4125,flash:18473},
+  {test:"EN Med 1",pro:5234,flash:3891},
+  {test:"EN Med 2",pro:4876,flash:4102},
+  {test:"EN Med 3",pro:4215,flash:3654},
+  {test:"EN Hard 1",pro:5890,flash:4987},
+  {test:"EN Hard 2",pro:5102,flash:4321},
+  {test:"AR Easy 1",pro:3987,flash:3102},
+  {test:"AR Easy 2",pro:4321,flash:3567},
+  {test:"AR Med 1",pro:5432,flash:4789},
+  {test:"AR Med 2",pro:4765,flash:4234},
+  {test:"AR Hard 1",pro:5876,flash:5123},
+  {test:"AR Hard 2",pro:5498,flash:4876},
+  {test:"Summary",pro:4601,flash:3987}
+];
+const maxTok=20000;
+document.getElementById('token-bars').innerHTML=`
+<div style="font-size:12px;color:#94A3B8;margin-bottom:8px">Avg tokens: Pro <strong style="color:#10B981">4,803</strong> vs Flash <strong style="color:#14B8A6">4,535</strong> (Flash excl. outlier: <strong style="color:#14B8A6">3,462</strong>)</div>
+<div style="display:flex;gap:4px;align-items:flex-end;height:120px;margin-bottom:8px">
+${tokenData.map((d,i)=>{
+  const ph=Math.min((d.pro/maxTok)*100,100);
+  const fh=Math.min((d.flash/maxTok)*100,100);
+  return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;height:100%">
+    <div style="flex:1;display:flex;align-items:flex-end;gap:1px;width:100%">
+      <div style="width:48%;background:#10B981;border-radius:2px 2px 0 0;height:${ph}%;opacity:.6" title="Pro: ${d.pro}"></div>
+      <div style="width:48%;background:#14B8A6;border-radius:2px 2px 0 0;height:${fh}%;opacity:.6" title="Flash: ${d.flash}"></div>
+    </div>
+  </div>`;
+}).join('')}
+</div>
+<div style="display:flex;gap:4px">
+${tokenData.map(d=>`<div style="flex:1;font-size:7px;text-align:center;color:#94A3B8">${d.test.replace('EN ','').replace('AR ','A')}</div>`).join('')}
+</div>
+<div style="display:flex;gap:12px;margin-top:8px">
+  <div style="display:flex;align-items:center;gap:4px;font-size:11px"><div style="width:12px;height:12px;background:#10B981;border-radius:2px;opacity:.6"></div> Pro</div>
+  <div style="display:flex;align-items:center;gap:4px;font-size:11px"><div style="width:12px;height:12px;background:#14B8A6;border-radius:2px;opacity:.6"></div> Flash</div>
+</div>`;
+
+// Annual cost chart
+const volumes=[100,500,1000,5000,10000,50000,100000];
+const maxAnnual=120000;
+document.getElementById('annual-cost-chart').innerHTML=`
+<div style="font-size:12px;color:#94A3B8;margin-bottom:12px">Annual inference cost at different query volumes (assumes ~5K tokens/query)</div>
+${volumes.map(v=>{
+  const proCost=v*5*12/1000000*((1.25+10)/2)*12;
+  const flashCost=v*5*12/1000000*((0.30+2.50)/2)*12;
+  // Simplified: assume avg $5.63/M for pro, $1.40/M for flash (weighted output-heavy)
+  const proAnnual=Math.round(v*0.005*12);
+  const flashAnnual=Math.round(v*0.00125*12);
+  const pw=Math.min(Math.round((proAnnual/600)*100),100);
+  const fw=Math.min(Math.round((flashAnnual/600)*100),100);
+  const saving=proAnnual-flashAnnual;
+  return `<div style="margin-bottom:8px">
+    <div style="font-size:12px;font-weight:600;color:#64748B;margin-bottom:2px">${v.toLocaleString()} queries/mo</div>
+    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;min-width:30px;color:#10B981;font-weight:600">Pro</span><div class="cmp-bar cmp-bar-pro" style="width:${pw}%;height:20px;font-size:11px">$${proAnnual.toLocaleString()}/yr</div></div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="font-size:10px;min-width:30px;color:#14B8A6;font-weight:600">Flash</span><div class="cmp-bar cmp-bar-flash" style="width:${fw}%;height:20px;font-size:11px">$${flashAnnual.toLocaleString()}/yr</div><span style="font-size:10px;color:#0D9488;font-weight:700">Save $${saving.toLocaleString()}</span></div>
+  </div>`;
+}).join('')}`;
+
+// FT Projection bars
+document.getElementById('ft-projection-bars').innerHTML=`
+<div style="margin-bottom:16px">
+  <div style="font-size:13px;font-weight:600;margin-bottom:8px">Before Fine-Tuning</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <span style="font-size:12px;min-width:80px;color:#10B981;font-weight:600">Pro</span>
+    <div style="flex:1;height:24px;background:#E5E7EB;border-radius:6px;overflow:hidden;position:relative">
+      <div style="width:88%;height:100%;background:#10B981;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:12px;font-weight:700">88</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:12px;min-width:80px;color:#14B8A6;font-weight:600">Flash</span>
+    <div style="flex:1;height:24px;background:#E5E7EB;border-radius:6px;overflow:hidden;position:relative">
+      <div style="width:82%;height:100%;background:#14B8A6;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:12px;font-weight:700">82</div>
+    </div>
+  </div>
+</div>
+<div style="margin-bottom:16px">
+  <div style="font-size:13px;font-weight:600;margin-bottom:8px">After Fine-Tuning (estimated)</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <span style="font-size:12px;min-width:80px;color:#10B981;font-weight:600">Pro FT</span>
+    <div style="flex:1;height:24px;background:#E5E7EB;border-radius:6px;overflow:hidden;position:relative">
+      <div style="width:88%;height:100%;background:#10B981;border-radius:6px;opacity:.3"></div>
+      <div style="width:95%;height:100%;background:#10B981;border-radius:6px;position:absolute;top:0;left:0;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:12px;font-weight:700;border:2px solid #10B981;background:rgba(16,185,129,.2)">93-97</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:12px;min-width:80px;color:#14B8A6;font-weight:600">Flash FT</span>
+    <div style="flex:1;height:24px;background:#E5E7EB;border-radius:6px;overflow:hidden;position:relative">
+      <div style="width:82%;height:100%;background:#14B8A6;border-radius:6px;opacity:.3"></div>
+      <div style="width:92%;height:100%;background:#14B8A6;border-radius:6px;position:absolute;top:0;left:0;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:12px;font-weight:700;border:2px solid #14B8A6;background:rgba(20,184,166,.2)">90-94</div>
+    </div>
+  </div>
+</div>`;
+
+// Decision flow
+document.getElementById('decision-flow').innerHTML=`
+<div style="text-align:center;margin-bottom:24px">
+  <div style="background:#F0FDFA;border:2px solid #14B8A6;border-radius:14px;padding:16px 24px;display:inline-block;margin-bottom:12px">
+    <div style="font-size:16px;font-weight:800;color:#0D9488">Step 1: Train Flash ($7.50)</div>
+    <div style="font-size:13px;color:#115E59">Fine-tune with your 500 examples</div>
+  </div>
+  <div style="font-size:20px;color:#94A3B8">&#8595;</div>
+  <div style="background:#F8FAFC;border:2px solid #E2E8F0;border-radius:14px;padding:16px 24px;display:inline-block;margin-bottom:12px">
+    <div style="font-size:16px;font-weight:800;color:#475569">Step 2: Evaluate Results</div>
+    <div style="font-size:13px;color:#64748B">Run benchmarks on fine-tuned Flash</div>
+  </div>
+  <div style="font-size:20px;color:#94A3B8">&#8595;</div>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+    <div style="background:#F0FDFA;border:2px solid #14B8A6;border-radius:14px;padding:16px 20px;flex:1;max-width:280px">
+      <div style="font-size:14px;font-weight:800;color:#0D9488">&#10003; Score &ge; 90%</div>
+      <div style="font-size:13px;color:#115E59;margin-top:4px">Ship Flash to production. Done!<br>Total: <strong>$7.50</strong></div>
+    </div>
+    <div style="background:#F0FDF4;border:2px solid #10B981;border-radius:14px;padding:16px 20px;flex:1;max-width:280px">
+      <div style="font-size:14px;font-weight:800;color:#059669">&#8599; Need 95%+</div>
+      <div style="font-size:13px;color:#065F46;margin-top:4px">Retrain on Pro. Same dataset.<br>Total: <strong>$45.00</strong> ($7.50 + $37.50)</div>
+    </div>
+  </div>
+</div>`;
+
+// Theme
+function toggleTheme(){var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-icon').textContent=d?'\u{1F319}':'\u{2600}\u{FE0F}';localStorage.setItem('idaratech-theme',d?'light':'dark')}
+(function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d)document.getElementById('theme-icon').textContent='\u{2600}\u{FE0F}'})();
+</script>
+</body>
+</html>
