@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<script>(function(){var t=localStorage.getItem("idaratech-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.setAttribute("data-theme","dark")})()</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Chat Cost Report — Token Pricing &amp; Company Quota Planning | Idaratech</title>
+<style>
+:root{--bg:#0F172A;--surface:#1E293B;--card:#1E293B;--border:#334155;--text:#E2E8F0;--muted:#94A3B8;--accent:#5EEAD4;--accent2:#A78BFA;--success:#10B981;--warning:#F59E0B;--danger:#EF4444;--info:#3B82F6;--code-bg:#0F172A}
+[data-theme="light"]{--bg:#F8FAFC;--surface:#FFFFFF;--card:#FFFFFF;--border:#E2E8F0;--text:#1E293B;--muted:#64748B;--accent:#0D9488;--accent2:#7C3AED;--success:#059669;--warning:#D97706;--danger:#DC2626;--info:#2563EB;--code-bg:#F1F5F9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 20px}
+h2{font-size:20px;font-weight:700;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:16px}
+h3{font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text)}
+h4{font-size:14px;font-weight:600;margin-bottom:8px}
+p{font-size:14px;margin-bottom:12px;color:var(--text)}
+a{color:var(--accent)}
+
+/* Header */
+.header{background:linear-gradient(135deg,#0F172A 0%,#1E1B4B 40%,#0B3B34 70%,#0F172A 100%);padding:36px 20px;text-align:center;position:relative}
+.header h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px}
+.header .sub{font-size:14px;color:#A78BFA;margin-bottom:20px}
+.header .badge{display:inline-block;background:rgba(255,255,255,0.15);color:#fff;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;max-width:800px;margin:0 auto}
+.kpi{background:rgba(255,255,255,0.1);border-radius:10px;padding:12px 8px;text-align:center;backdrop-filter:blur(8px)}
+.kpi .kv{font-size:22px;font-weight:800;color:#fff}
+.kpi .kl{font-size:10px;color:#A7F3D0;text-transform:uppercase;letter-spacing:0.5px}
+.theme-toggle{position:absolute;top:16px;right:20px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--surface);padding:6px;border-radius:10px;margin:20px 0;flex-wrap:wrap;border:1px solid var(--border)}
+.tb{padding:8px 16px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s}
+.tb:hover{background:rgba(94,234,212,0.1);color:var(--accent)}
+.tb.active{background:var(--accent);color:#0F172A}
+.tc{display:none}.tc.active{display:block}
+
+/* Cards & Sections */
+.sec{margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+
+/* Alerts */
+.alert{padding:14px 18px;border-radius:8px;font-size:13px;margin:14px 0;line-height:1.6}
+.alert-success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--success)}
+.alert-warning{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:var(--warning)}
+.alert-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger)}
+.alert-info{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:var(--info)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+th{background:var(--surface);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);font-size:12px}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:hover{background:rgba(94,234,212,0.04)}
+.row-hl{background:rgba(94,234,212,0.06) !important}
+
+/* Badges */
+.b{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.b-green{background:rgba(16,185,129,0.15);color:#10B981}
+.b-teal{background:rgba(20,184,166,0.15);color:#14B8A6}
+.b-blue{background:rgba(59,130,246,0.15);color:#3B82F6}
+.b-purple{background:rgba(139,92,246,0.15);color:#8B5CF6}
+.b-yellow{background:rgba(245,158,11,0.15);color:#F59E0B}
+.b-red{background:rgba(239,68,68,0.15);color:#EF4444}
+.b-gray{background:rgba(148,163,184,0.15);color:#94A3B8}
+.b-cyan{background:rgba(6,182,212,0.15);color:#06B6D4}
+
+/* Model color dots */
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+/* Stat boxes */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.sb{background:var(--surface);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)}
+.sb-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.sb-v{font-size:20px;font-weight:700}
+
+/* Chart bars */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{width:130px;font-size:12px;font-weight:600;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:28px;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border);position:relative}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#fff;min-width:40px;transition:width 0.6s ease}
+.bar-val{font-size:12px;font-weight:600;min-width:50px;color:var(--muted)}
+
+/* Stacked bars */
+.stacked-bar{display:flex;height:32px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.stacked-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;min-width:30px}
+
+/* Model pricing cards */
+.price-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;position:relative;overflow:hidden}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.pc-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.pc-score{font-size:12px;color:var(--muted);margin-bottom:12px}
+.pc-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.pc-row:last-child{border:none}
+.pc-label{color:var(--muted)}
+.pc-val{font-weight:700}
+
+/* Cost visual boxes */
+.cost-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.cost-big{font-size:32px;font-weight:800}
+.cost-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Token bucket visual */
+.bucket{position:relative;width:100%;height:120px;background:var(--surface);border-radius:0 0 12px 12px;border:2px solid var(--border);border-top:2px dashed var(--border);overflow:hidden;margin:8px 0}
+.bucket-fill{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 10px 10px;transition:height 0.6s ease}
+.bucket-label{position:absolute;top:8px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
+.bucket-val{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:14px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+
+/* Callout */
+.callout{border-radius:12px;padding:20px;text-align:center;margin:16px 0}
+.callout-v{font-size:36px;font-weight:800}
+.callout-l{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* How it works flow */
+.flow-step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.flow-icon{font-size:28px;margin-bottom:6px}
+.flow-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.flow-desc{font-size:12px;color:var(--muted)}
+
+/* Footer */
+.footer{text-align:center;padding:20px;border-top:1px solid var(--border);margin-top:30px;font-size:12px;color:var(--muted)}
+.footer-brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;font-weight:600;color:var(--text)}
+
+/* Responsive */
+@media(max-width:768px){
+.kpis,.g5{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:1fr}
+.g2{grid-template-columns:1fr}
+.bar-label{width:90px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-icon">&#127769;</button>
+  <div class="badge">AI SQL Chat &middot; Internal Cost Planning</div>
+  <h1>AI Chat Cost Report</h1>
+  <p class="sub">Token pricing, company quota modeling &amp; subscription planning for 5 models</p>
+  <div class="kpis">
+    <div class="kpi"><div class="kv">5</div><div class="kl">Models</div></div>
+    <div class="kpi"><div class="kv">5</div><div class="kl">Quota Tiers</div></div>
+    <div class="kpi"><div class="kv">~4,000</div><div class="kl">Avg Tokens/Req</div></div>
+    <div class="kpi"><div class="kv">$0.30</div><div class="kl">Cheapest/M In</div></div>
+    <div class="kpi"><div class="kv">$25.00</div><div class="kl">Most Expensive/M Out</div></div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="wrap">
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tb active" onclick="showTab('pricing')">Token Pricing</button>
+  <button class="tb" onclick="showTab('howit')">How Tokens Work</button>
+  <button class="tb" onclick="showTab('quota')">Company Quota Plans</button>
+  <button class="tb" onclick="showTab('monthly')">Monthly Cost Simulator</button>
+  <button class="tb" onclick="showTab('compare')">Model Comparison</button>
+  <button class="tb" onclick="showTab('finetune')">Fine-Tuning Costs</button>
+</div>
+
+<!-- ============ TAB 1: TOKEN PRICING ============ -->
+<div class="tc active" id="tab-pricing">
+
+<div class="sec">
+  <h2>Per-Token Pricing — All 5 Models</h2>
+  <p>Every time a user sends a question to the AI Chat, we pay for <strong>input tokens</strong> (the question + system prompt + schema) and <strong>output tokens</strong> (the SQL + explanation). Prices are per <strong>1 million tokens</strong>.</p>
+</div>
+
+<div class="sec">
+  <div class="g5" id="price-cards"></div>
+</div>
+
+<div class="sec">
+  <h3>Full Pricing Table</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Input / M tokens</th>
+        <th>Output / M tokens</th>
+        <th>Benchmark Score</th>
+        <th>Avg Tokens/Req</th>
+        <th>Provider</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-hl"><td><span class="dot" style="background:#14B8A6"></span><strong>Gemini 2.5 Flash</strong></td><td style="color:#14B8A6;font-weight:700">$0.30</td><td style="color:#14B8A6;font-weight:700">$2.50</td><td>82/100</td><td>4,535</td><td>Google AI / Vertex</td></tr>
+      <tr><td><span class="dot" style="background:#10B981"></span><strong>Gemini 2.5 Pro</strong></td><td>$1.25</td><td>$10.00</td><td>88/100</td><td>4,803</td><td>Google AI / Vertex</td></tr>
+      <tr><td><span class="dot" style="background:#0EA5E9"></span><strong>Gemini 3.1 Pro</strong></td><td>$2.00</td><td>$12.00</td><td>84/100</td><td>3,907</td><td>Google AI</td></tr>
+      <tr><td><span class="dot" style="background:#8B5CF6"></span><strong>GPT 4.1</strong></td><td>$2.00</td><td>$8.00</td><td>80/100</td><td>2,796</td><td>OpenAI</td></tr>
+      <tr><td><span class="dot" style="background:#A78BFA"></span><strong>Claude Opus 4.6</strong></td><td>$5.00</td><td>$25.00</td><td>N/A</td><td>~4,000*</td><td>Anthropic</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:11px;color:var(--muted)">* Claude Opus 4.6 was not included in our SQL benchmark. Token estimate based on similar model behavior. Prices as of March 2026.</p>
+</div>
+
+<div class="sec">
+  <h3>Input vs Output Price — Visual</h3>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Output tokens are always more expensive than input. This matters because our SQL responses are mostly output-heavy.</p>
+  <div id="input-bars"></div>
+  <div style="margin-top:16px" id="output-bars"></div>
+</div>
+
+<div class="sec">
+  <h3>Cost per Single Request (Approximate)</h3>
+  <p>Based on average tokens from our benchmark: ~70% input (system prompt + schema + question), ~30% output (SQL + explanation).</p>
+  <table>
+    <thead><tr><th>Model</th><th>Avg Tokens</th><th>Input (~70%)</th><th>Output (~30%)</th><th>Cost per Request</th></tr></thead>
+    <tbody id="per-request-table"></tbody>
+  </table>
+  <div class="alert alert-info"><strong>How to read this:</strong> Each time a user asks the AI chat a question, it costs between $0.002 and $0.040 depending on the model. Flash is ~20x cheaper per request than Claude Opus.</div>
+</div>
+
+</div>
+
+<!-- ============ TAB 2: HOW TOKENS WORK ============ -->
+<div class="tc" id="tab-howit">
+
+<div class="sec">
+  <h2>How Tokens Work — Simple Explanation</h2>
+  <p>Tokens are the "currency" of AI models. Think of them like <strong>data credits</strong> — every word, number, and symbol costs tokens.</p>
+
+  <div class="g3" style="margin-top:16px">
+    <div class="flow-step">
+      <div class="flow-icon">&#128172;</div>
+      <div class="flow-title">User Asks a Question</div>
+      <div class="flow-desc">"Show me employees who were late this month"<br><span class="b b-blue" style="margin-top:6px;display:inline-block">~50 tokens</span></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-icon">&#128295;</div>
+      <div class="flow-title">System Adds Context</div>
+      <div class="flow-desc">Database schema, rules, instructions sent with every request<br><span class="b b-purple" style="margin-top:6px;display:inline-block">~2,500 tokens</span></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-icon">&#129302;</div>
+      <div class="flow-title">AI Returns SQL</div>
+      <div class="flow-desc">SQL query + brief explanation<br><span class="b b-green" style="margin-top:6px;display:inline-block">~1,200 tokens</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h3>One Request = How Many Tokens?</h3>
+
+  <div class="card" style="border-left:4px solid var(--accent)">
+    <h4>Anatomy of a Typical AI Chat Request</h4>
+    <table>
+      <thead><tr><th>Component</th><th>Direction</th><th>Tokens</th><th>Who Pays</th></tr></thead>
+      <tbody>
+        <tr><td>System Prompt (instructions, rules)</td><td style="color:#3B82F6">Input</td><td>~1,000</td><td>Input price</td></tr>
+        <tr><td>Database Schema (table definitions)</td><td style="color:#3B82F6">Input</td><td>~1,500</td><td>Input price</td></tr>
+        <tr><td>User's Question</td><td style="color:#3B82F6">Input</td><td>~30–100</td><td>Input price</td></tr>
+        <tr><td><strong>Total Input</strong></td><td style="color:#3B82F6"><strong>Input</strong></td><td><strong>~2,600–2,800</strong></td><td><strong>Input price</strong></td></tr>
+        <tr style="border-top:2px solid var(--border)"><td>SQL Query</td><td style="color:#10B981">Output</td><td>~300–600</td><td>Output price</td></tr>
+        <tr><td>Explanation / Analysis</td><td style="color:#10B981">Output</td><td>~400–800</td><td>Output price</td></tr>
+        <tr><td><strong>Total Output</strong></td><td style="color:#10B981"><strong>Output</strong></td><td><strong>~800–1,400</strong></td><td><strong>Output price</strong></td></tr>
+        <tr class="row-hl"><td><strong>Total per Request</strong></td><td></td><td><strong>~3,500–4,500</strong></td><td><strong>Both</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="alert alert-warning"><strong>Why the system prompt is included every time:</strong> Unlike a chat where previous context is "remembered," each AI SQL request sends the full database schema and rules with the question. This is ~2,500 tokens of input on every single request — it's the biggest cost driver.</div>
+</div>
+
+<div class="sec">
+  <h3>What Does ~4,000 Tokens Look Like?</h3>
+  <div class="g3">
+    <div class="card" style="text-align:center;border-top:4px solid #3B82F6">
+      <div style="font-size:28px;font-weight:800;color:#3B82F6">~3,000</div>
+      <div style="font-size:12px;color:var(--muted)">words of English text</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">= about 6 pages</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:4px solid #10B981">
+      <div style="font-size:28px;font-weight:800;color:#10B981">~1,500</div>
+      <div style="font-size:12px;color:var(--muted)">words of Arabic text</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Arabic uses more tokens per word</div>
+    </div>
+    <div class="card" style="text-align:center;border-top:4px solid #8B5CF6">
+      <div style="font-size:28px;font-weight:800;color:#8B5CF6">~100</div>
+      <div style="font-size:12px;color:var(--muted)">lines of SQL code</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">= about 3-4 complex queries</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h3>Token Subscription Model — How It Works</h3>
+  <p>Each company subscribes to a <strong>token quota</strong> — like buying a data plan. They don't pay per-month, they pay for a <strong>bucket of tokens</strong> that gets used up as employees ask questions.</p>
+
+  <div class="g3" style="margin-top:16px">
+    <div class="flow-step" style="border-color:var(--accent)">
+      <div class="flow-icon">&#128179;</div>
+      <div class="flow-title">Company Buys Tokens</div>
+      <div class="flow-desc">e.g., "1M token plan"<br>Like buying a prepaid card</div>
+    </div>
+    <div class="flow-step" style="border-color:var(--warning)">
+      <div class="flow-icon">&#128101;</div>
+      <div class="flow-title">Employees Use Chat</div>
+      <div class="flow-desc">Each question uses ~4,000 tokens<br>Shared across all admins</div>
+    </div>
+    <div class="flow-step" style="border-color:var(--danger)">
+      <div class="flow-icon">&#128683;</div>
+      <div class="flow-title">Quota Runs Out</div>
+      <div class="flow-desc">Company upgrades or waits<br>We set limits per plan</div>
+    </div>
+  </div>
+
+  <div class="alert alert-success"><strong>Why token-based (not monthly)?</strong> A company with 5 admins asking 10 questions/day uses very differently from one with 50 admins asking 100 questions/day. Token quotas let us charge fairly based on actual usage — like cloud bandwidth.</div>
+</div>
+</div>
+
+<!-- ============ TAB 3: COMPANY QUOTA PLANS ============ -->
+<div class="tc" id="tab-quota">
+
+<div class="sec">
+  <h2>Token Quota Tiers</h2>
+  <p>How many requests fit in each tier, and what it costs us per model. This helps plan subscription pricing.</p>
+</div>
+
+<div class="sec">
+  <h3>Requests per Tier (at ~4,000 tokens avg per request)</h3>
+  <div class="g5" id="tier-buckets"></div>
+</div>
+
+<div class="sec">
+  <h3>Our Cost per Tier — By Model</h3>
+  <p>What <strong>we pay</strong> the AI provider for each quota tier. This is our cost basis for setting subscription prices.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>500K tokens<br><span style="font-weight:400;font-size:10px">~125 req</span></th>
+        <th>1M tokens<br><span style="font-weight:400;font-size:10px">~250 req</span></th>
+        <th>2M tokens<br><span style="font-weight:400;font-size:10px">~500 req</span></th>
+        <th>5M tokens<br><span style="font-weight:400;font-size:10px">~1,250 req</span></th>
+        <th>10M tokens<br><span style="font-weight:400;font-size:10px">~2,500 req</span></th>
+      </tr>
+    </thead>
+    <tbody id="quota-table"></tbody>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>Visual: Cost per Tier</h3>
+  <div id="tier-chart"></div>
+</div>
+
+<div class="sec">
+  <h3>Pricing Strategy Insight</h3>
+  <div class="g2">
+    <div class="card" style="border-left:4px solid #10B981">
+      <h4 style="color:#10B981">Cheapest Option: Gemini 2.5 Flash</h4>
+      <p style="font-size:13px;margin:0">At $0.99/M blended cost, a 1M token plan costs us <strong>less than $1</strong>. Even a generous 5M plan costs only $4.95. This gives the widest margin for subscription pricing.</p>
+    </div>
+    <div class="card" style="border-left:4px solid #A78BFA">
+      <h4 style="color:#A78BFA">Most Expensive: Claude Opus 4.6</h4>
+      <p style="font-size:13px;margin:0">At $11.00/M blended cost, a 1M plan costs us <strong>$11.00</strong>. A 5M plan = $55. This model is only viable for premium tiers or internal use — not volume SaaS.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info"><strong>Recommendation for SaaS pricing:</strong> Use <strong>Gemini 2.5 Flash</strong> (or Pro after fine-tuning) as the default model. Offer Claude Opus as a "Premium AI" tier at higher subscription prices. This way our cost basis stays low while offering customers a choice.</div>
+</div>
+
+<div class="sec">
+  <h3>Company Usage Scenarios</h3>
+  <table>
+    <thead><tr><th>Company Size</th><th>Admins</th><th>Est. Questions/Month</th><th>Tokens/Month</th><th>Suggested Tier</th></tr></thead>
+    <tbody>
+      <tr><td>Small (10-30 employees)</td><td>2-3</td><td>50-150</td><td>200K-600K</td><td><span class="b b-green">500K</span></td></tr>
+      <tr><td>Medium (30-100 employees)</td><td>5-10</td><td>200-500</td><td>800K-2M</td><td><span class="b b-blue">1M - 2M</span></td></tr>
+      <tr><td>Large (100-500 employees)</td><td>10-25</td><td>500-2,000</td><td>2M-8M</td><td><span class="b b-purple">5M</span></td></tr>
+      <tr><td>Enterprise (500+)</td><td>25-50+</td><td>2,000-5,000+</td><td>8M-20M+</td><td><span class="b b-yellow">10M+</span></td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- ============ TAB 4: MONTHLY COST SIMULATOR ============ -->
+<div class="tc" id="tab-monthly">
+
+<div class="sec">
+  <h2>Monthly Cost Simulator</h2>
+  <p>Estimate monthly costs based on the number of daily requests per company. Assumes ~4,000 tokens per request and 22 working days/month.</p>
+</div>
+
+<div class="sec">
+  <h3>Cost by Daily Requests — All Models</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Daily Requests</th>
+        <th>Monthly Requests</th>
+        <th>Monthly Tokens</th>
+        <th><span class="dot" style="background:#14B8A6"></span>Flash</th>
+        <th><span class="dot" style="background:#10B981"></span>Pro</th>
+        <th><span class="dot" style="background:#0EA5E9"></span>3.1 Pro</th>
+        <th><span class="dot" style="background:#8B5CF6"></span>GPT 4.1</th>
+        <th><span class="dot" style="background:#A78BFA"></span>Claude</th>
+      </tr>
+    </thead>
+    <tbody id="monthly-table"></tbody>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>Visual: Monthly Cost at 50 Requests/Day</h3>
+  <div id="monthly-bars"></div>
+  <p style="font-size:12px;color:var(--muted);margin-top:8px">50 requests/day = ~1,100 requests/month = ~4.4M tokens/month. Typical for a medium-sized company with 5-10 admins.</p>
+</div>
+
+<div class="sec">
+  <h3>Cost Scaling Visualization</h3>
+  <p>How costs grow as usage increases — from 10 to 200 daily requests:</p>
+  <div id="scale-chart"></div>
+</div>
+
+<div class="sec">
+  <h3>Key Takeaways</h3>
+  <div class="g3">
+    <div class="card" style="border-top:4px solid #14B8A6;text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Flash @ 50 req/day</div>
+      <div style="font-size:32px;font-weight:800;color:#14B8A6" id="flash-50">—</div>
+      <div style="font-size:12px;color:var(--muted)">/month</div>
+    </div>
+    <div class="card" style="border-top:4px solid #10B981;text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Pro @ 50 req/day</div>
+      <div style="font-size:32px;font-weight:800;color:#10B981" id="pro-50">—</div>
+      <div style="font-size:12px;color:var(--muted)">/month</div>
+    </div>
+    <div class="card" style="border-top:4px solid #A78BFA;text-align:center">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Claude @ 50 req/day</div>
+      <div style="font-size:32px;font-weight:800;color:#A78BFA" id="claude-50">—</div>
+      <div style="font-size:12px;color:var(--muted)">/month</div>
+    </div>
+  </div>
+  <div class="alert alert-warning"><strong>Claude Opus costs 11x more than Flash.</strong> At 50 requests/day, Flash costs ~$4.36/mo while Claude costs ~$48.40/mo. For a SaaS product, this difference determines whether AI Chat can be included free or needs to be a paid add-on.</div>
+</div>
+</div>
+
+<!-- ============ TAB 5: MODEL COMPARISON ============ -->
+<div class="tc" id="tab-compare">
+
+<div class="sec">
+  <h2>Model Comparison — Cost vs Quality</h2>
+  <p>Which model gives the best value? Let's compare price, accuracy, and speed side by side.</p>
+</div>
+
+<div class="sec">
+  <h3>Complete Comparison</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Score</th>
+        <th>Pass Rate</th>
+        <th>Speed</th>
+        <th>Input/M</th>
+        <th>Output/M</th>
+        <th>Cost/Request</th>
+        <th>Fine-Tunable</th>
+      </tr>
+    </thead>
+    <tbody id="compare-table"></tbody>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>Cost per Accuracy Point</h3>
+  <p>How much does each point of accuracy cost? (Monthly cost at 1K requests / benchmark score)</p>
+  <div id="cost-per-point"></div>
+</div>
+
+<div class="sec">
+  <h3>The Value Matrix</h3>
+  <div class="g2">
+    <div class="card" style="border:2px solid #14B8A6">
+      <h4 style="color:#14B8A6">Best Value: Gemini 2.5 Flash</h4>
+      <div class="sg">
+        <div class="sb"><div class="sb-l">Score</div><div class="sb-v" style="color:#14B8A6">82</div></div>
+        <div class="sb"><div class="sb-l">Cost/1K Req</div><div class="sb-v" style="color:#14B8A6">$4.36</div></div>
+        <div class="sb"><div class="sb-l">Speed</div><div class="sb-v" style="color:#14B8A6">6.9s</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:8px 0 0">Cheapest per request, fastest response, fine-tunable at $7.50. Best for high-volume SaaS deployment.</p>
+    </div>
+    <div class="card" style="border:2px solid #10B981">
+      <h4 style="color:#10B981">Best Accuracy: Gemini 2.5 Pro</h4>
+      <div class="sg">
+        <div class="sb"><div class="sb-l">Score</div><div class="sb-v" style="color:#10B981">88</div></div>
+        <div class="sb"><div class="sb-l">Cost/1K Req</div><div class="sb-v" style="color:#10B981">$17.01</div></div>
+        <div class="sb"><div class="sb-l">Speed</div><div class="sb-v" style="color:#10B981">29.8s</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:8px 0 0">Highest benchmark score, strong Arabic. 4x more expensive than Flash but 7% more accurate.</p>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h3>Decision Guide</h3>
+  <table>
+    <thead><tr><th>Use Case</th><th>Recommended Model</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr class="row-hl"><td><strong>Default SaaS (all companies)</strong></td><td><span class="b b-teal">Gemini 2.5 Flash</span></td><td>Cheapest, fastest, fine-tunable. Best margin for subscription pricing.</td></tr>
+      <tr><td><strong>Premium tier</strong></td><td><span class="b b-green">Gemini 2.5 Pro</span></td><td>Highest accuracy. Charge more for "Pro AI" tier.</td></tr>
+      <tr><td><strong>Cost + reliability balanced</strong></td><td><span class="b b-cyan">Gemini 3.1 Pro</span></td><td>100% pass rate, 0 retries. Good middle ground.</td></tr>
+      <tr><td><strong>Non-Google stack</strong></td><td><span class="b b-purple">GPT 4.1</span></td><td>Cheapest per-request (fewest tokens). Good if already on OpenAI.</td></tr>
+      <tr><td><strong>Maximum quality (internal only)</strong></td><td><span class="b b-purple" style="background:rgba(167,139,250,0.15);color:#A78BFA">Claude Opus 4.6</span></td><td>Most capable model overall, but too expensive for customer-facing volume.</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- ============ TAB 6: FINE-TUNING COSTS ============ -->
+<div class="tc" id="tab-finetune">
+
+<div class="sec">
+  <h2>Fine-Tuning Costs</h2>
+  <p>Fine-tuning teaches the model our specific database patterns, improving accuracy by 8-12 points. Not all models support it.</p>
+</div>
+
+<div class="sec">
+  <h3>Fine-Tuning Support</h3>
+  <table>
+    <thead><tr><th>Model</th><th>Fine-Tuning</th><th>Training Price</th><th>Provider</th><th>Inference After FT</th></tr></thead>
+    <tbody>
+      <tr class="row-hl"><td><span class="dot" style="background:#14B8A6"></span><strong>Gemini 2.5 Flash</strong></td><td><span class="b b-green">Available</span></td><td>$5.00 / M tokens</td><td>Vertex AI (SFT)</td><td style="color:#10B981;font-weight:600">Same as base (no markup)</td></tr>
+      <tr class="row-hl"><td><span class="dot" style="background:#10B981"></span><strong>Gemini 2.5 Pro</strong></td><td><span class="b b-green">Available</span></td><td>$25.00 / M tokens</td><td>Vertex AI (SFT)</td><td style="color:#10B981;font-weight:600">Same as base (no markup)</td></tr>
+      <tr><td><span class="dot" style="background:#0EA5E9"></span><strong>Gemini 3.1 Pro</strong></td><td><span class="b b-red">Not Available</span></td><td>—</td><td>—</td><td>—</td></tr>
+      <tr class="row-hl"><td><span class="dot" style="background:#8B5CF6"></span><strong>GPT 4.1</strong></td><td><span class="b b-green">Available</span></td><td>$25.00 / M tokens</td><td>OpenAI</td><td style="color:#F59E0B;font-weight:600">~1.5x base price</td></tr>
+      <tr><td><span class="dot" style="background:#A78BFA"></span><strong>Claude Opus 4.6</strong></td><td><span class="b b-red">Not Available</span></td><td>—</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert alert-warning"><strong>GPT 4.1 has a hidden cost:</strong> After fine-tuning, inference costs go up ~1.5x ($2.00 &rarr; ~$3.00 input, $8.00 &rarr; ~$12.00 output). Google (Vertex AI) does NOT charge more for fine-tuned inference — same price as base model.</div>
+</div>
+
+<div class="sec">
+  <h3>Training Cost by Dataset Size</h3>
+  <p>Training cost = number of tokens in dataset &times; epochs (3 passes) &times; price per million tokens.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Examples</th>
+        <th>Dataset Tokens</th>
+        <th>Effective Tokens (3 epochs)</th>
+        <th><span class="dot" style="background:#14B8A6"></span>Flash ($5/M)</th>
+        <th><span class="dot" style="background:#10B981"></span>Pro ($25/M)</th>
+        <th><span class="dot" style="background:#8B5CF6"></span>GPT 4.1 ($25/M)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>100</td><td>~100K</td><td>300K</td><td style="color:#14B8A6;font-weight:700">$1.50</td><td>$7.50</td><td>$7.50</td></tr>
+      <tr><td>250</td><td>~250K</td><td>750K</td><td style="color:#14B8A6;font-weight:700">$3.75</td><td>$18.75</td><td>$18.75</td></tr>
+      <tr class="row-hl"><td><strong>500</strong></td><td>~500K</td><td>1.5M</td><td style="color:#14B8A6;font-weight:700"><strong>$7.50</strong></td><td><strong>$37.50</strong></td><td><strong>$37.50</strong></td></tr>
+      <tr><td>1,000</td><td>~1M</td><td>3M</td><td style="color:#14B8A6;font-weight:700">$15.00</td><td>$75.00</td><td>$75.00</td></tr>
+      <tr><td>2,000</td><td>~2M</td><td>6M</td><td style="color:#14B8A6;font-weight:700">$30.00</td><td>$150.00</td><td>$150.00</td></tr>
+      <tr><td>5,000</td><td>~5M</td><td>15M</td><td style="color:#14B8A6;font-weight:700">$75.00</td><td>$375.00</td><td>$375.00</td></tr>
+      <tr><td>10,000</td><td>~10M</td><td>30M</td><td style="color:#14B8A6;font-weight:700">$150.00</td><td>$750.00</td><td>$750.00</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:11px;color:var(--muted)">Assumes ~1,000 tokens per training example (system prompt + question + ideal SQL response).</p>
+</div>
+
+<div class="sec">
+  <h3>Training Cost Visual</h3>
+  <div id="ft-bars"></div>
+</div>
+
+<div class="sec">
+  <h3>Post Fine-Tuning: Total Cost of Ownership</h3>
+  <p>Training is one-time, but inference cost changes for GPT. Here's the full picture at 1,000 monthly requests:</p>
+  <table>
+    <thead><tr><th>Model</th><th>Training (one-time)</th><th>Monthly Inference (1K req)</th><th>Year 1 Total</th><th>Year 2+ (annual)</th></tr></thead>
+    <tbody>
+      <tr class="row-hl">
+        <td><span class="dot" style="background:#14B8A6"></span><strong>Flash (FT)</strong></td>
+        <td>$7.50</td>
+        <td id="ft-flash-monthly">—</td>
+        <td id="ft-flash-y1">—</td>
+        <td id="ft-flash-y2">—</td>
+      </tr>
+      <tr>
+        <td><span class="dot" style="background:#10B981"></span><strong>Pro (FT)</strong></td>
+        <td>$37.50</td>
+        <td id="ft-pro-monthly">—</td>
+        <td id="ft-pro-y1">—</td>
+        <td id="ft-pro-y2">—</td>
+      </tr>
+      <tr>
+        <td><span class="dot" style="background:#8B5CF6"></span><strong>GPT 4.1 (FT)</strong></td>
+        <td>$37.50</td>
+        <td id="ft-gpt-monthly">—</td>
+        <td id="ft-gpt-y1">—</td>
+        <td id="ft-gpt-y2">—</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-success"><strong>Flash fine-tuned is the clear winner.</strong> Cheapest training ($7.50), cheapest inference (no markup), lowest Year 1 total. Even after 2 years, Flash FT costs less than one month of Claude Opus.</div>
+</div>
+
+</div>
+
+</div><!-- end wrap -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">
+    <img src="icon.svg" alt="Idaratech" style="height:24px">
+    <span>Idaratech &middot; &#1573;&#1583;&#1575;&#1585;&#1578;&#1603;</span>
+  </div>
+  <div>AI Chat Cost Report &mdash; Internal Planning Document</div>
+  <div style="margin-top:4px;font-size:11px">Pricing data: Anthropic, Google AI, OpenAI &mdash; March 2026</div>
+</div>
+
+<script>
+// ========== MODEL DATA ==========
+const models = [
+  { name:"Gemini 2.5 Flash", short:"Flash", color:"#14B8A6", input:0.30, output:2.50, score:82, pass:"93%", passNum:13, tokens:4535, time:"6.9s", timeNum:6.9, retries:0, ft:true, ftTrain:5, ftInferenceMult:1.0, provider:"Google" },
+  { name:"Gemini 2.5 Pro", short:"Pro", color:"#10B981", input:1.25, output:10.00, score:88, pass:"93%", passNum:13, tokens:4803, time:"29.8s", timeNum:29.8, retries:1, ft:true, ftTrain:25, ftInferenceMult:1.0, provider:"Google" },
+  { name:"Gemini 3.1 Pro", short:"3.1 Pro", color:"#0EA5E9", input:2.00, output:12.00, score:84, pass:"100%", passNum:14, tokens:3907, time:"32.4s", timeNum:32.4, retries:0, ft:false, ftTrain:null, ftInferenceMult:null, provider:"Google" },
+  { name:"GPT 4.1", short:"GPT 4.1", color:"#8B5CF6", input:2.00, output:8.00, score:80, pass:"79%", passNum:11, tokens:2796, time:"5.2s", timeNum:5.2, retries:0, ft:true, ftTrain:25, ftInferenceMult:1.5, provider:"OpenAI" },
+  { name:"Claude Opus 4.6", short:"Claude", color:"#A78BFA", input:5.00, output:25.00, score:null, pass:"N/A", passNum:null, tokens:4000, time:"~15s", timeNum:15, retries:null, ft:false, ftTrain:null, ftInferenceMult:null, provider:"Anthropic" }
+];
+
+const tiers = [500000, 1000000, 2000000, 5000000, 10000000];
+const tierLabels = ["500K","1M","2M","5M","10M"];
+const AVG_TOKENS = 4000;
+const INPUT_RATIO = 0.70;
+const OUTPUT_RATIO = 0.30;
+
+function blendedCost(m) {
+  return (m.input * INPUT_RATIO + m.output * OUTPUT_RATIO);
+}
+function costPerReq(m) {
+  let inTok = m.tokens * INPUT_RATIO;
+  let outTok = m.tokens * OUTPUT_RATIO;
+  return (inTok * m.input + outTok * m.output) / 1000000;
+}
+function fmt(n,d=2) { return '$'+n.toFixed(d); }
+function fmtK(n) { return n>=1000000?(n/1000000).toFixed(0)+'M':n>=1000?(n/1000).toFixed(0)+'K':n; }
+
+// ========== TAB 1: PRICING ==========
+// Price cards
+document.getElementById('price-cards').innerHTML = models.map(m => `
+  <div class="price-card" style="border-color:${m.color}40">
+    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${m.color}"></div>
+    <div class="pc-name" style="color:${m.color}">${m.short}</div>
+    <div class="pc-score">${m.score?m.score+'/100 score':'Not benchmarked'}</div>
+    <div class="pc-row"><span class="pc-label">Input</span><span class="pc-val">${fmt(m.input)}/M</span></div>
+    <div class="pc-row"><span class="pc-label">Output</span><span class="pc-val">${fmt(m.output)}/M</span></div>
+    <div class="pc-row"><span class="pc-label">Blended</span><span class="pc-val" style="color:${m.color}">${fmt(blendedCost(m))}/M</span></div>
+  </div>`).join('');
+
+// Input bars
+document.getElementById('input-bars').innerHTML = '<h4 style="margin-bottom:10px">Input Price ($/M tokens)</h4>' +
+  [...models].sort((a,b)=>a.input-b.input).map(m => `
+  <div class="bar-row">
+    <div class="bar-label">${m.short}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${(m.input/5)*100}%;background:${m.color}">${fmt(m.input)}</div></div>
+  </div>`).join('');
+
+// Output bars
+document.getElementById('output-bars').innerHTML = '<h4 style="margin-bottom:10px">Output Price ($/M tokens)</h4>' +
+  [...models].sort((a,b)=>a.output-b.output).map(m => `
+  <div class="bar-row">
+    <div class="bar-label">${m.short}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${(m.output/25)*100}%;background:${m.color}">${fmt(m.output)}</div></div>
+  </div>`).join('');
+
+// Per-request table
+document.getElementById('per-request-table').innerHTML = [...models].sort((a,b)=>costPerReq(a)-costPerReq(b)).map(m => {
+  let c = costPerReq(m);
+  let inTok = Math.round(m.tokens*INPUT_RATIO);
+  let outTok = Math.round(m.tokens*OUTPUT_RATIO);
+  return `<tr${m.short==='Flash'?' class="row-hl"':''}>
+    <td><span class="dot" style="background:${m.color}"></span><strong>${m.name}</strong></td>
+    <td>${m.tokens.toLocaleString()}</td>
+    <td>${inTok.toLocaleString()}</td>
+    <td>${outTok.toLocaleString()}</td>
+    <td style="color:${m.color};font-weight:700">${fmt(c,4)}</td></tr>`;
+}).join('');
+
+// ========== TAB 3: QUOTA ==========
+// Tier buckets
+document.getElementById('tier-buckets').innerHTML = tiers.map((t,i) => {
+  let reqs = Math.round(t/AVG_TOKENS);
+  let pct = Math.min(100, (t/10000000)*100);
+  return `<div style="text-align:center">
+    <div style="font-size:20px;font-weight:800;color:var(--accent)">${tierLabels[i]}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">tokens</div>
+    <div class="bucket">
+      <div class="bucket-fill" style="height:${pct}%;background:linear-gradient(to top,rgba(94,234,212,0.3),rgba(94,234,212,0.1))"></div>
+      <div class="bucket-label">${tierLabels[i]}</div>
+      <div class="bucket-val">~${reqs.toLocaleString()} req</div>
+    </div>
+  </div>`;
+}).join('');
+
+// Quota cost table
+document.getElementById('quota-table').innerHTML = models.map(m => {
+  let bc = blendedCost(m);
+  return `<tr${m.short==='Flash'?' class="row-hl"':''}>
+    <td><span class="dot" style="background:${m.color}"></span><strong>${m.short}</strong></td>
+    ${tiers.map(t => {
+      let cost = (t/1000000)*bc;
+      return `<td style="font-weight:600;${cost<5?'color:#10B981':'cost>20?color:#EF4444':''}">${fmt(cost)}</td>`;
+    }).join('')}
+  </tr>`;
+}).join('');
+
+// Tier chart (grouped bars per tier)
+document.getElementById('tier-chart').innerHTML = tiers.map((t,i) => {
+  return `<div style="margin-bottom:16px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px">${tierLabels[i]} tokens (~${Math.round(t/AVG_TOKENS).toLocaleString()} requests)</div>
+    ${models.map(m => {
+      let cost = (t/1000000)*blendedCost(m);
+      let maxCost = (t/1000000)*blendedCost(models[4]); // Claude is max
+      let pct = Math.max(5, (cost/maxCost)*100);
+      return `<div class="bar-row" style="margin-bottom:4px">
+        <div class="bar-label" style="width:100px;font-size:11px">${m.short}</div>
+        <div class="bar-track" style="height:22px"><div class="bar-fill" style="width:${pct}%;background:${m.color};font-size:10px">${fmt(cost)}</div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}).join('');
+
+// ========== TAB 4: MONTHLY ==========
+const dailyOptions = [5,10,20,50,100,200];
+document.getElementById('monthly-table').innerHTML = dailyOptions.map(d => {
+  let monthly = d*22;
+  let tokens = monthly*AVG_TOKENS;
+  return `<tr${d===50?' class="row-hl"':''}>
+    <td><strong>${d}</strong></td>
+    <td>${monthly.toLocaleString()}</td>
+    <td>${fmtK(tokens)}</td>
+    ${models.map(m => {
+      let cost = (tokens/1000000)*blendedCost(m);
+      return `<td style="font-weight:600;color:${m.color}">${fmt(cost)}</td>`;
+    }).join('')}
+  </tr>`;
+}).join('');
+
+// Monthly bars at 50/day
+let monthlyTokens50 = 50*22*AVG_TOKENS;
+document.getElementById('monthly-bars').innerHTML = models.map(m => {
+  let cost = (monthlyTokens50/1000000)*blendedCost(m);
+  let maxCost = (monthlyTokens50/1000000)*blendedCost(models[4]);
+  let pct = Math.max(5,(cost/maxCost)*100);
+  return `<div class="bar-row">
+    <div class="bar-label">${m.short}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}">${fmt(cost)}/mo</div></div>
+  </div>`;
+}).join('');
+
+// Fill KPI cards
+let f50 = (monthlyTokens50/1000000)*blendedCost(models[0]);
+let p50 = (monthlyTokens50/1000000)*blendedCost(models[1]);
+let c50 = (monthlyTokens50/1000000)*blendedCost(models[4]);
+document.getElementById('flash-50').textContent = fmt(f50);
+document.getElementById('pro-50').textContent = fmt(p50);
+document.getElementById('claude-50').textContent = fmt(c50);
+
+// Scale chart
+let scalePoints = [10,20,50,100,200];
+document.getElementById('scale-chart').innerHTML = `<table>
+  <thead><tr><th>Daily Req</th>${models.map(m=>`<th><span class="dot" style="background:${m.color}"></span>${m.short}</th>`).join('')}</tr></thead>
+  <tbody>${scalePoints.map(d => {
+    let tokens = d*22*AVG_TOKENS;
+    return `<tr${d===50?' class="row-hl"':''}>
+      <td><strong>${d}/day</strong><br><span style="font-size:11px;color:var(--muted)">${(d*22).toLocaleString()}/mo</span></td>
+      ${models.map(m => {
+        let cost = (tokens/1000000)*blendedCost(m);
+        return `<td style="font-weight:700;color:${m.color}">${fmt(cost)}</td>`;
+      }).join('')}
+    </tr>`;
+  }).join('')}</tbody>
+</table>`;
+
+// ========== TAB 5: COMPARE ==========
+document.getElementById('compare-table').innerHTML = models.map(m => {
+  let cpr = costPerReq(m);
+  return `<tr${m.short==='Flash'?' class="row-hl"':''}>
+    <td><span class="dot" style="background:${m.color}"></span><strong>${m.name}</strong></td>
+    <td style="font-weight:700;color:${m.color}">${m.score||'N/A'}</td>
+    <td>${m.pass}</td>
+    <td>${m.time}</td>
+    <td>${fmt(m.input)}</td>
+    <td>${fmt(m.output)}</td>
+    <td style="font-weight:600">${fmt(cpr,4)}</td>
+    <td>${m.ft?'<span class="b b-green">Yes</span>':'<span class="b b-red">No</span>'}</td>
+  </tr>`;
+}).join('');
+
+// Cost per accuracy point
+let scored = models.filter(m=>m.score);
+document.getElementById('cost-per-point').innerHTML = scored.sort((a,b)=>{
+  let ca=(1000*costPerReq(a))/a.score, cb=(1000*costPerReq(b))/b.score;
+  return ca-cb;
+}).map(m => {
+  let monthly1k = 1000*costPerReq(m);
+  let perPoint = monthly1k/m.score;
+  let maxPP = (1000*costPerReq(models[4]))/80; // rough max
+  let pct = Math.max(8,(perPoint/maxPP)*100);
+  return `<div class="bar-row">
+    <div class="bar-label">${m.short} (${m.score})</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}">${fmt(perPoint,3)}/pt</div></div>
+    <div class="bar-val">${fmt(monthly1k)} / 1K req</div>
+  </div>`;
+}).join('');
+
+// ========== TAB 6: FINE-TUNING ==========
+let ftModels = models.filter(m=>m.ft);
+let ftExamples = [500, 1000, 5000, 10000];
+document.getElementById('ft-bars').innerHTML = ftExamples.map(ex => {
+  let tokens = ex * 1000 * 3; // 3 epochs
+  return `<div style="margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px">${ex.toLocaleString()} examples (${(tokens/1000000).toFixed(1)}M effective tokens)</div>
+    ${ftModels.map(m => {
+      let cost = (tokens/1000000)*m.ftTrain;
+      let max = (tokens/1000000)*25; // max is $25/M
+      let pct = Math.max(8,(cost/max)*100);
+      return `<div class="bar-row" style="margin-bottom:4px">
+        <div class="bar-label" style="width:100px;font-size:11px">${m.short}</div>
+        <div class="bar-track" style="height:22px"><div class="bar-fill" style="width:${pct}%;background:${m.color};font-size:10px">${fmt(cost)}</div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}).join('');
+
+// Post-FT TCO
+function ftMonthly(m, mult) {
+  let bc = (m.input*mult*INPUT_RATIO + m.output*mult*OUTPUT_RATIO);
+  return (1000*AVG_TOKENS/1000000)*bc;
+}
+let fFlash = ftMonthly(models[0],1.0);
+let fPro = ftMonthly(models[1],1.0);
+let fGpt = ftMonthly(models[3],1.5);
+document.getElementById('ft-flash-monthly').innerHTML = `<span style="color:#14B8A6;font-weight:700">${fmt(fFlash)}</span>`;
+document.getElementById('ft-pro-monthly').innerHTML = `<span style="color:#10B981;font-weight:700">${fmt(fPro)}</span>`;
+document.getElementById('ft-gpt-monthly').innerHTML = `<span style="color:#8B5CF6;font-weight:700">${fmt(fGpt)}</span>`;
+document.getElementById('ft-flash-y1').innerHTML = `<strong style="color:#14B8A6">${fmt(7.50+fFlash*12)}</strong>`;
+document.getElementById('ft-pro-y1').innerHTML = `<strong>${fmt(37.50+fPro*12)}</strong>`;
+document.getElementById('ft-gpt-y1').innerHTML = `<strong>${fmt(37.50+fGpt*12)}</strong>`;
+document.getElementById('ft-flash-y2').innerHTML = `<span style="color:#14B8A6">${fmt(fFlash*12)}</span>`;
+document.getElementById('ft-pro-y2').innerHTML = `${fmt(fPro*12)}`;
+document.getElementById('ft-gpt-y2').innerHTML = `${fmt(fGpt*12)}`;
+
+// ========== THEME & TABS ==========
+function showTab(id){
+  document.querySelectorAll('.tc').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+function toggleTheme(){var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-icon').textContent=d?'\uD83C\uDF19':'\u2600\uFE0F';localStorage.setItem('idaratech-theme',d?'light':'dark')}
+(function(){var d=document.documentElement.getAttribute('data-theme')==='dark';if(d)document.getElementById('theme-icon').textContent='\u2600\uFE0F'})();
+</script>
+</body>
+</html>
