@@ -198,32 +198,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
 </div>
 
 <div class="sec">
-  <h3>Full Pricing Table</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Model</th>
-        <th>Provider</th>
-        <th>Input / M tokens</th>
-        <th>Output / M tokens</th>
-        <th>Benchmark Pass Rate</th>
-        <th>Avg Tokens/Request</th>
-        <th>Fine-Tunable</th>
-      </tr>
-    </thead>
-    <tbody id="full-pricing-table"></tbody>
-  </table>
-  <p style="font-size:11px;color:var(--muted)">* Claude Opus 4.6 benchmarked separately (4 queries, 8 tests). All other models tested on our v3 benchmark (7 queries, 14 tests). Prices as of March 2026.</p>
-</div>
-
-<div class="sec">
-  <h3>Input vs Output Price &mdash; Visual</h3>
-  <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Output tokens are always more expensive. Our SQL Chat is output-heavy (~30% of total tokens are output), so output price matters significantly.</p>
-  <div id="input-bars"></div>
-  <div style="margin-top:16px" id="output-bars"></div>
-</div>
-
-<div class="sec">
   <h3>Cost per Single Request</h3>
   <p>Based on each model's actual average token count from benchmarks. Split: ~70% input (system prompt + schema + question), ~30% output (SQL + explanation).</p>
   <table>
@@ -231,12 +205,7 @@ tr:hover{background:rgba(94,234,212,0.04)}
     <tbody id="per-request-table"></tbody>
   </table>
   <div class="alert alert-info"><strong>Key insight:</strong> Each user question costs between <strong>$0.002</strong> (Flash) and <strong>$0.040</strong> (Claude Opus). Flash is ~20x cheaper per request than Claude. GPT 4.1 uses the fewest tokens (2,796) but its output price makes it mid-range overall.</div>
-</div>
-
-<div class="sec">
-  <h3>Annual Cost Projection (at 1,000 requests/month)</h3>
-  <p>What does each model cost annually for a company making ~1,000 AI Chat requests per month?</p>
-  <div id="annual-projection"></div>
+  <p style="font-size:11px;color:var(--muted)">* Claude Opus 4.6 benchmarked separately (4 queries, 8 tests). All other models tested on our v3 benchmark (7 queries, 14 tests). Prices as of March 2026.</p>
 </div>
 
 </div>
@@ -290,12 +259,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
   </div>
 
   <div class="alert alert-warning"><strong>Why the system prompt is included every time:</strong> Unlike a chat where previous context is "remembered," each AI SQL request sends the full database schema and rules with the question. This is ~2,500 tokens of input on every single request &mdash; it's the biggest cost driver.</div>
-</div>
-
-<div class="sec">
-  <h3>Actual Average Tokens per Model (from benchmarks)</h3>
-  <div id="tokens-per-model-bars"></div>
-  <p style="font-size:12px;color:var(--muted);margin-top:8px">Gemini models produce longer, more verbose responses. GPT 4.1 and Claude are more token-efficient &mdash; they generate shorter, more direct SQL. This directly affects cost per request.</p>
 </div>
 
 <div class="sec">
@@ -379,11 +342,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
 </div>
 
 <div class="sec">
-  <h3>Visual: Cost per Tier</h3>
-  <div id="tier-chart"></div>
-</div>
-
-<div class="sec">
   <h3>Pricing Strategy Insights</h3>
   <div class="g2">
     <div class="rec-box" style="border-color:#14B8A6">
@@ -450,12 +408,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
 </div>
 
 <div class="sec">
-  <h3>Cost Scaling &mdash; 10 to 200 Daily Requests</h3>
-  <p>How costs grow as usage increases:</p>
-  <div id="scale-chart"></div>
-</div>
-
-<div class="sec">
   <h3>Key Takeaways</h3>
   <div class="g3">
     <div class="card" style="border-top:4px solid #14B8A6;text-align:center">
@@ -507,18 +459,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
     <tbody id="compare-table"></tbody>
   </table>
   <p style="font-size:11px;color:var(--muted)">* Claude scored on separate benchmark (4 queries, 8 tests). Others scored on v3 benchmark (7 queries, 14 tests). Score is out of 100 where applicable.</p>
-</div>
-
-<div class="sec">
-  <h3>Score vs Cost per Request</h3>
-  <p>The sweet spot is top-left: high score, low cost.</p>
-  <div id="score-vs-cost"></div>
-</div>
-
-<div class="sec">
-  <h3>Cost Efficiency: Monthly Cost per Accuracy Point</h3>
-  <p>How much does each "point" of accuracy cost per month? (Monthly cost at 1,000 requests / benchmark score)</p>
-  <div id="cost-per-point"></div>
 </div>
 
 <div class="sec">
@@ -645,11 +585,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
 </div>
 
 <div class="sec">
-  <h3>Training Cost Visual (500 examples recommended)</h3>
-  <div id="ft-bars"></div>
-</div>
-
-<div class="sec">
   <h3>Post Fine-Tuning: Total Cost of Ownership</h3>
   <p>Training is a one-time expense, but GPT's inference cost goes up after fine-tuning. Here's the full picture at 1,000 monthly requests:</p>
   <table>
@@ -679,30 +614,6 @@ tr:hover{background:rgba(94,234,212,0.04)}
     </tbody>
   </table>
   <div class="alert alert-success"><strong>Flash fine-tuned is the clear winner for production.</strong> Cheapest training ($7.50 for 500 examples), cheapest inference (no markup), lowest total cost over time. Even after 2 years of running, fine-tuned Flash costs less than one month of Claude Opus at the same volume.</div>
-</div>
-
-<div class="sec">
-  <h3>Fine-Tuning ROI Summary</h3>
-  <div class="g3">
-    <div class="card" style="border-top:4px solid #14B8A6;text-align:center">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Flash FT Investment</div>
-      <div style="font-size:28px;font-weight:800;color:#14B8A6">$7.50</div>
-      <div style="font-size:12px;color:var(--muted)">one-time training cost</div>
-      <div style="font-size:11px;color:#14B8A6;margin-top:6px">Expected score: 82 &rarr; ~90+</div>
-    </div>
-    <div class="card" style="border-top:4px solid #10B981;text-align:center">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Pro FT Investment</div>
-      <div style="font-size:28px;font-weight:800;color:#10B981">$37.50</div>
-      <div style="font-size:12px;color:var(--muted)">one-time training cost</div>
-      <div style="font-size:11px;color:#10B981;margin-top:6px">Expected score: 88 &rarr; ~95+</div>
-    </div>
-    <div class="card" style="border-top:4px solid #8B5CF6;text-align:center">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase">GPT 4.1 FT Investment</div>
-      <div style="font-size:28px;font-weight:800;color:#8B5CF6">$37.50</div>
-      <div style="font-size:12px;color:var(--muted)">one-time + 1.5x inference</div>
-      <div style="font-size:11px;color:#F59E0B;margin-top:6px">Hidden ongoing cost increase</div>
-    </div>
-  </div>
 </div>
 
 </div>
@@ -797,40 +708,6 @@ document.getElementById('price-cards').innerHTML = models.map(m => `
     <div class="pc-row"><span class="pc-label">Per Request</span><span class="pc-val" style="color:${m.color}">${fmt(costPerReq(m),4)}</span></div>
   </div>`).join('');
 
-// Full pricing table
-document.getElementById('full-pricing-table').innerHTML = models.map(m => {
-  let scoreDisplay = m.score ? m.score + '/100' : '100%*';
-  return `<tr${m.short==='Flash'?' class="row-hl"':''}>
-    <td><span class="dot" style="background:${m.color}"></span><strong>${m.name}</strong></td>
-    <td>${m.provider}</td>
-    <td style="color:${m.color};font-weight:700">${fmt(m.input)}</td>
-    <td style="color:${m.color};font-weight:700">${fmt(m.output)}</td>
-    <td>${m.pass} (${m.passNum}/${m.totalTests})</td>
-    <td>${m.tokens.toLocaleString()}</td>
-    <td>${m.ft?'<span class="b b-green">Yes</span>':'<span class="b b-red">No</span>'}</td>
-  </tr>`;
-}).join('');
-
-// Input bars
-document.getElementById('input-bars').innerHTML = '<h4 style="margin-bottom:10px">Input Price ($ / M tokens)</h4>' +
-  [...models].sort((a,b) => a.input - b.input).map(m => {
-    let pct = Math.max(8, (m.input / 5) * 100);
-    return `<div class="bar-row">
-      <div class="bar-label">${m.short}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}">${fmt(m.input)}</div></div>
-    </div>`;
-  }).join('');
-
-// Output bars
-document.getElementById('output-bars').innerHTML = '<h4 style="margin-bottom:10px">Output Price ($ / M tokens)</h4>' +
-  [...models].sort((a,b) => a.output - b.output).map(m => {
-    let pct = Math.max(8, (m.output / 25) * 100);
-    return `<div class="bar-row">
-      <div class="bar-label">${m.short}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}">${fmt(m.output)}</div></div>
-    </div>`;
-  }).join('');
-
 // Per-request table with full breakdown
 document.getElementById('per-request-table').innerHTML = [...models].sort((a,b) => costPerReq(a) - costPerReq(b)).map(m => {
   let inTok = Math.round(m.tokens * INPUT_RATIO);
@@ -848,34 +725,6 @@ document.getElementById('per-request-table').innerHTML = [...models].sort((a,b) 
     <td style="color:${m.color};font-weight:700">${fmt(total,4)}</td>
   </tr>`;
 }).join('');
-
-// Annual cost projection at 1K req/month
-document.getElementById('annual-projection').innerHTML = `<div class="g5">` +
-  [...models].sort((a,b) => costPerReq(a) - costPerReq(b)).map(m => {
-    let monthly = 1000 * costPerReq(m);
-    let annual = monthly * 12;
-    return `<div class="card" style="text-align:center;border-top:4px solid ${m.color}">
-      <div style="font-size:13px;font-weight:700;color:${m.color};margin-bottom:4px">${m.short}</div>
-      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Annual @ 1K req/mo</div>
-      <div style="font-size:24px;font-weight:800;color:${m.color}">${fmt(annual)}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px">${fmt(monthly)}/mo</div>
-    </div>`;
-  }).join('') + `</div>`;
-
-// =====================================================================
-// TAB 2: HOW TOKENS WORK
-// =====================================================================
-
-// Tokens per model bars
-document.getElementById('tokens-per-model-bars').innerHTML =
-  [...models].sort((a,b) => b.tokens - a.tokens).map(m => {
-    let pct = Math.max(8, (m.tokens / 5000) * 100);
-    return `<div class="bar-row">
-      <div class="bar-label">${m.short}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}">${m.tokens.toLocaleString()} tokens</div></div>
-      <div class="bar-val">${m.time}</div>
-    </div>`;
-  }).join('');
 
 // =====================================================================
 // TAB 3: COMPANY QUOTA PLANS
@@ -909,23 +758,6 @@ document.getElementById('quota-table').innerHTML = models.map(m => {
       return `<td style="font-weight:600;${colorStyle}">${fmt(cost)}</td>`;
     }).join('')}
   </tr>`;
-}).join('');
-
-// Tier chart (grouped bars)
-document.getElementById('tier-chart').innerHTML = tiers.map((t,i) => {
-  let reqs = Math.round(t / AVG_TOKENS);
-  return `<div style="margin-bottom:16px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:6px">${tierLabels[i]} tokens (~${reqs.toLocaleString()} requests)</div>
-    ${models.map(m => {
-      let cost = (t / 1000000) * blendedCost(m);
-      let maxCost = (t / 1000000) * blendedCost(models[4]);
-      let pct = Math.max(5, (cost / maxCost) * 100);
-      return `<div class="bar-row" style="margin-bottom:4px">
-        <div class="bar-label" style="width:100px;font-size:11px">${m.short}</div>
-        <div class="bar-track" style="height:22px"><div class="bar-fill" style="width:${pct}%;background:${m.color};font-size:10px">${fmt(cost)}</div></div>
-      </div>`;
-    }).join('')}
-  </div>`;
 }).join('');
 
 // =====================================================================
@@ -967,22 +799,6 @@ document.getElementById('flash-50').textContent = fmt(f50);
 document.getElementById('pro-50').textContent = fmt(p50);
 document.getElementById('claude-50').textContent = fmt(c50);
 
-// Scale chart table
-let scalePoints = [10, 20, 50, 100, 200];
-document.getElementById('scale-chart').innerHTML = `<table>
-  <thead><tr><th>Daily Req</th>${models.map(m => `<th><span class="dot" style="background:${m.color}"></span>${m.short}</th>`).join('')}</tr></thead>
-  <tbody>${scalePoints.map(d => {
-    let tokens = d * 22 * AVG_TOKENS;
-    return `<tr${d===50?' class="row-hl"':''}>
-      <td><strong>${d}/day</strong><br><span style="font-size:11px;color:var(--muted)">${(d*22).toLocaleString()}/mo</span></td>
-      ${models.map(m => {
-        let cost = (tokens / 1000000) * blendedCost(m);
-        return `<td style="font-weight:700;color:${m.color}">${fmt(cost)}</td>`;
-      }).join('')}
-    </tr>`;
-  }).join('')}</tbody>
-</table>`;
-
 // =====================================================================
 // TAB 5: MODEL COMPARISON
 // =====================================================================
@@ -1006,54 +822,6 @@ document.getElementById('compare-table').innerHTML = models.map(m => {
   </tr>`;
 }).join('');
 
-// Score vs Cost visual
-let scoredModels = models.filter(m => m.score);
-document.getElementById('score-vs-cost').innerHTML = `<div class="g2">
-  <div class="card">
-    <h4>By Benchmark Score (higher = better)</h4>
-    ${[...scoredModels].sort((a,b) => b.score - a.score).map(m => {
-      let pct = Math.max(10, (m.score / 100) * 100);
-      return `<div class="bar-row" style="margin-bottom:4px">
-        <div class="bar-label" style="width:80px;font-size:11px">${m.short}</div>
-        <div class="bar-track" style="height:24px"><div class="bar-fill" style="width:${pct}%;background:${m.color};font-size:11px">${m.score}/100</div></div>
-      </div>`;
-    }).join('')}
-    <div class="bar-row" style="margin-bottom:4px;opacity:0.7">
-      <div class="bar-label" style="width:80px;font-size:11px">Claude*</div>
-      <div class="bar-track" style="height:24px"><div class="bar-fill" style="width:95%;background:#A78BFA;font-size:11px">100% pass*</div></div>
-    </div>
-  </div>
-  <div class="card">
-    <h4>By Cost per Request (lower = better)</h4>
-    ${[...models].sort((a,b) => costPerReq(a) - costPerReq(b)).map(m => {
-      let maxCpr = costPerReq(models[4]);
-      let pct = Math.max(8, (costPerReq(m) / maxCpr) * 100);
-      return `<div class="bar-row" style="margin-bottom:4px">
-        <div class="bar-label" style="width:80px;font-size:11px">${m.short}</div>
-        <div class="bar-track" style="height:24px"><div class="bar-fill" style="width:${pct}%;background:${m.color};font-size:10px">${fmt(costPerReq(m),4)}</div></div>
-      </div>`;
-    }).join('')}
-  </div>
-</div>`;
-
-// Cost per accuracy point
-document.getElementById('cost-per-point').innerHTML = scoredModels.sort((a,b) => {
-  let ca = (1000 * costPerReq(a)) / a.score;
-  let cb = (1000 * costPerReq(b)) / b.score;
-  return ca - cb;
-}).map(m => {
-  let monthly1k = 1000 * costPerReq(m);
-  let perPoint = monthly1k / m.score;
-  let maxPP = (1000 * costPerReq(models[3])) / models[3].score; // Use actual scored max
-  maxPP = Math.max(maxPP, ...scoredModels.map(s => (1000 * costPerReq(s)) / s.score));
-  let pct = Math.max(8, (perPoint / maxPP) * 100);
-  return `<div class="bar-row">
-    <div class="bar-label">${m.short} (${m.score}pts)</div>
-    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}">${fmt(perPoint,3)}/pt</div></div>
-    <div class="bar-val">${fmt(monthly1k)}/1K req</div>
-  </div>`;
-}).join('');
-
 // Fill value matrix cost/request values
 document.getElementById('flash-cpr').textContent = fmt(costPerReq(models[0]), 4);
 document.getElementById('pro-cpr').textContent = fmt(costPerReq(models[1]), 4);
@@ -1067,24 +835,6 @@ document.getElementById('pro-cpr').textContent = fmt(costPerReq(models[1]), 4);
 // =====================================================================
 // TAB 6: FINE-TUNING COSTS
 // =====================================================================
-
-let ftModels = models.filter(m => m.ft);
-let ftExamples = [100, 500, 1000, 5000, 10000];
-document.getElementById('ft-bars').innerHTML = ftExamples.map(ex => {
-  let tokens = ex * 1000 * 3; // 3 epochs
-  return `<div style="margin-bottom:14px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:6px">${ex.toLocaleString()} examples (${(tokens/1000000).toFixed(1)}M effective tokens)</div>
-    ${ftModels.map(m => {
-      let cost = (tokens / 1000000) * m.ftTrain;
-      let max = (tokens / 1000000) * 25;
-      let pct = Math.max(8, (cost / max) * 100);
-      return `<div class="bar-row" style="margin-bottom:4px">
-        <div class="bar-label" style="width:110px;font-size:11px">${m.short} ($${m.ftTrain}/M)</div>
-        <div class="bar-track" style="height:22px"><div class="bar-fill" style="width:${pct}%;background:${m.color};font-size:10px">${fmt(cost)}</div></div>
-      </div>`;
-    }).join('')}
-  </div>`;
-}).join('');
 
 // Post-FT TCO at 1K monthly requests
 function ftMonthly(m, mult) {
