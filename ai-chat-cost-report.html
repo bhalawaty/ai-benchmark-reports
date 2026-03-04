@@ -146,28 +146,28 @@ tr:hover{background:rgba(94,234,212,0.04)}
   <button class="theme-toggle" onclick="toggleTheme()" id="theme-icon">&#127769;</button>
   <div class="badge">AI SQL Chat &middot; Internal Cost Planning</div>
   <h1>AI Chat Cost Report</h1>
-  <p class="sub">Token pricing, company quota modeling &amp; fine-tuning costs across 5 models</p>
+  <p class="sub">Token pricing, company quota modeling &amp; fine-tuning costs across 7 models</p>
 
   <div class="hero-insight">
     <div class="hero-insight-card">
-      <div class="hi-val" style="color:#14B8A6">$0.002</div>
-      <div class="hi-label">Cheapest per request (Flash)</div>
+      <div class="hi-val" style="color:#F97316">$0.001</div>
+      <div class="hi-label">Cheapest per request (Qwen 32B)</div>
     </div>
     <div class="hero-insight-card">
       <div class="hi-val" style="color:#A78BFA">$0.040</div>
       <div class="hi-label">Most expensive per request (Claude)</div>
     </div>
     <div class="hero-insight-card">
-      <div class="hi-val" style="color:#10B981">20x</div>
-      <div class="hi-label">Price difference cheapest vs most expensive</div>
+      <div class="hi-val" style="color:#10B981">40x</div>
+      <div class="hi-label">Price range cheapest to most expensive</div>
     </div>
   </div>
 
   <div class="kpis">
-    <div class="kpi"><div class="kv">5</div><div class="kl">Models Compared</div></div>
+    <div class="kpi"><div class="kv">7</div><div class="kl">Models Compared</div></div>
     <div class="kpi"><div class="kv">~3,700</div><div class="kl">Avg Tokens/Request</div></div>
     <div class="kpi"><div class="kv">5</div><div class="kl">Quota Tiers</div></div>
-    <div class="kpi"><div class="kv">$0.30</div><div class="kl">Cheapest Input/M</div></div>
+    <div class="kpi"><div class="kv">$0.16</div><div class="kl">Cheapest Input/M</div></div>
     <div class="kpi"><div class="kv">3</div><div class="kl">Fine-Tunable Models</div></div>
   </div>
 </div>
@@ -189,12 +189,12 @@ tr:hover{background:rgba(94,234,212,0.04)}
 <div class="tc active" id="tab-pricing">
 
 <div class="sec">
-  <h2>Per-Token Pricing &mdash; All 5 Models</h2>
+  <h2>Per-Token Pricing &mdash; All 7 Models</h2>
   <p>Every AI Chat request costs tokens. We pay for <strong>input tokens</strong> (the question + system prompt + database schema) and <strong>output tokens</strong> (the SQL query + explanation). Prices are per <strong>1 million tokens</strong>.</p>
 </div>
 
 <div class="sec">
-  <div class="g5" id="price-cards"></div>
+  <div id="price-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px"></div>
 </div>
 
 <div class="sec">
@@ -528,6 +528,7 @@ tr:hover{background:rgba(94,234,212,0.04)}
       <tr><td><strong>Reliability-first</strong></td><td><span class="b b-cyan">Gemini 3.1 Pro</span></td><td>100% pass rate, 0 retries. Most consistent output.</td><td id="guide-31">&mdash;</td></tr>
       <tr><td><strong>Non-Google stack</strong></td><td><span class="b b-purple">GPT 4.1</span></td><td>Fewest tokens per request. Good if already on OpenAI platform.</td><td id="guide-gpt">&mdash;</td></tr>
       <tr><td><strong>Internal team only</strong></td><td><span class="b b-lavender">Claude Opus 4.6</span></td><td>Best overall quality, but too expensive for customer-facing volume.</td><td id="guide-claude">&mdash;</td></tr>
+      <tr><td><strong>Budget testing only</strong></td><td><span class="b b-yellow">Qwen 3 235B / 32B</span></td><td>Cheapest per-token via Alibaba Cloud, but Arabic compliance fails (3/7). <strong>Not recommended for production.</strong></td><td id="guide-qwen">&mdash;</td></tr>
     </tbody>
   </table>
 </div>
@@ -669,6 +670,20 @@ const models = [
     tokens:2521, time:"18.3s", timeNum:18.3, retries:0, arabic:"100%",
     ft:false, ftTrain:null, ftInferenceMult:null, provider:"Anthropic",
     note:"Separate benchmark (4 queries, 8 tests)"
+  },
+  {
+    name:"Qwen 3 235B", short:"Qwen 235B", color:"#F59E0B",
+    input:0.70, output:2.80, score:63, pass:"71%", passNum:10, totalTests:14,
+    tokens:3966, time:"85.7s", timeNum:85.7, retries:2, arabic:"3/7",
+    ft:false, ftTrain:null, ftInferenceMult:null, provider:"Alibaba Cloud",
+    note:"Arabic compliance FAIL (3/7). Not recommended for production."
+  },
+  {
+    name:"Qwen 3 32B", short:"Qwen 32B", color:"#F97316",
+    input:0.16, output:0.64, score:55, pass:"64%", passNum:9, totalTests:14,
+    tokens:3559, time:"59.7s", timeNum:59.7, retries:1, arabic:"3/7",
+    ft:false, ftTrain:null, ftInferenceMult:null, provider:"Alibaba Cloud",
+    note:"Arabic compliance FAIL (3/7). Cheapest per-token but low accuracy."
   }
 ];
 
@@ -706,6 +721,7 @@ document.getElementById('price-cards').innerHTML = models.map(m => `
     <div class="pc-row"><span class="pc-label">Output</span><span class="pc-val">${fmt(m.output)}/M</span></div>
     <div class="pc-row"><span class="pc-label">Blended (70/30)</span><span class="pc-val" style="color:${m.color}">${fmt(blendedCost(m))}/M</span></div>
     <div class="pc-row"><span class="pc-label">Per Request</span><span class="pc-val" style="color:${m.color}">${fmt(costPerReq(m),4)}</span></div>
+    ${m.note ? `<div style="margin-top:8px;padding:6px 8px;background:rgba(245,158,11,0.1);border-radius:6px;font-size:10px;color:var(--warning);line-height:1.4">${m.note}</div>` : ''}
   </div>`).join('');
 
 // Per-request table with full breakdown
@@ -831,6 +847,9 @@ document.getElementById('pro-cpr').textContent = fmt(costPerReq(models[1]), 4);
   let monthly = 1000 * costPerReq(models[i]);
   document.getElementById(id).innerHTML = `<strong style="color:${models[i].color}">${fmt(monthly)}</strong>`;
 });
+// Qwen guide: show cheapest (32B) monthly cost
+let qwenMonthly = 1000 * costPerReq(models[6]);
+document.getElementById('guide-qwen').innerHTML = `<strong style="color:${models[6].color}">${fmt(qwenMonthly)}</strong>`;
 
 // =====================================================================
 // TAB 6: FINE-TUNING COSTS
