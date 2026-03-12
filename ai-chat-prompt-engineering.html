@@ -50,85 +50,16 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ─── Sidebar Navigation ─── */
-        .sidebar {
-            position: fixed;
-            left: 0; top: 0; bottom: 0;
-            width: 280px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            padding: 32px 0;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .sidebar-logo {
-            padding: 0 24px 28px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-
-        .sidebar-logo h2 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--accent);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .sidebar-logo p {
-            font-size: 11px;
-            color: var(--text-dim);
-            margin-top: 4px;
-        }
-
-        .nav-section {
-            padding: 0 16px;
-            margin-bottom: 8px;
-        }
-
-        .nav-section-title {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            padding: 12px 8px 6px;
-        }
-
-        .nav-link {
-            display: block;
-            padding: 8px 12px;
-            font-size: 13px;
-            color: var(--text-dim);
-            text-decoration: none;
-            border-radius: var(--radius-xs);
-            transition: all 0.15s;
-            border-left: 2px solid transparent;
-        }
-
-        .nav-link:hover {
-            color: var(--text-bright);
-            background: var(--accent-glow);
-        }
-
-        .nav-link.active {
-            color: var(--accent);
-            background: var(--accent-glow);
-            border-left-color: var(--accent);
-        }
-
-        .nav-link .nav-number {
-            display: inline-block;
-            width: 20px;
-            font-weight: 600;
-            font-size: 11px;
-            color: var(--accent-dim);
-        }
+        /* ─── Tabs Navigation ─── */
+        .tabs{display:flex;gap:4px;background:var(--bg-card);padding:6px;border-radius:10px;margin:0 0 32px;flex-wrap:wrap;border:1px solid var(--border)}
+        .tb{padding:8px 16px;border-radius:8px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;font-family:'DM Sans',-apple-system,sans-serif}
+        .tb:hover{background:var(--accent-glow);color:var(--accent)}
+        .tb.active{background:var(--accent);color:var(--bg)}
+        .tc{display:none}.tc.active{display:block}
 
         /* ─── Main Content ─── */
         .main {
-            margin-left: 280px;
+            margin-left: 0;
             min-height: 100vh;
         }
 
@@ -637,7 +568,6 @@
 
         /* ─── Responsive ─── */
         @media (max-width: 1080px) {
-            .sidebar { display: none; }
             .main { margin-left: 0; }
             .hero { padding: 48px 32px 40px; }
             .content { padding: 32px; }
@@ -647,35 +577,6 @@
     </style>
 </head>
 <body>
-
-<!-- ═══ Sidebar ═══ -->
-<nav class="sidebar">
-    <div class="sidebar-logo">
-        <h2>Idaratech AI</h2>
-        <p>Prompt Engineering Guide</p>
-    </div>
-    <div class="nav-section">
-        <div class="nav-section-title">Foundations</div>
-        <a href="#what-is-prompt-engineering" class="nav-link"><span class="nav-number">01</span> What is Prompt Engineering?</a>
-        <a href="#why-does-it-matter" class="nav-link"><span class="nav-number">02</span> Why Does It Matter?</a>
-    </div>
-    <div class="nav-section">
-        <div class="nav-section-title">Changes</div>
-        <a href="#what-we-changed" class="nav-link"><span class="nav-number">03</span> What We Changed &amp; Why</a>
-        <a href="#temperature" class="nav-link"><span class="nav-number">04</span> Understanding Temperature</a>
-        <a href="#prompt-structure" class="nav-link"><span class="nav-number">05</span> Prompt Structure</a>
-    </div>
-    <div class="nav-section">
-        <div class="nav-section-title">Reference</div>
-        <a href="#techniques" class="nav-link"><span class="nav-number">06</span> Techniques Applied</a>
-        <a href="#best-practices" class="nav-link"><span class="nav-number">07</span> Best Practices</a>
-        <a href="#testing" class="nav-link"><span class="nav-number">08</span> Testing &amp; Iteration</a>
-        <a href="#research-improvements" class="nav-link"><span class="nav-number">09</span> Research-Backed Improvements</a>
-        <a href="#schema-evolution" class="nav-link"><span class="nav-number">10</span> Schema Format Evolution</a>
-        <a href="#file-changes" class="nav-link"><span class="nav-number">11</span> File Changes</a>
-        <a href="#references" class="nav-link"><span class="nav-number">12</span> References</a>
-    </div>
-</nav>
 
 <!-- ═══ Main ═══ -->
 <div class="main">
@@ -707,6 +608,14 @@
     </header>
 
     <div class="content">
+
+        <div class="tabs">
+            <button class="tb active" onclick="showTab('foundations')">Foundations</button>
+            <button class="tb" onclick="showTab('changes')">Changes</button>
+            <button class="tb" onclick="showTab('reference')">Reference</button>
+        </div>
+
+        <div id="tab-foundations" class="tc active">
 
         <!-- ═══ Section 1: What is Prompt Engineering ═══ -->
         <section class="section" id="what-is-prompt-engineering">
@@ -768,6 +677,10 @@
                 <div>Every improvement in prompt quality directly translates to fewer errors, faster responses, and better user trust.</div>
             </div>
         </section>
+
+        </div><!-- /tab-foundations -->
+
+        <div id="tab-changes" class="tc">
 
         <!-- ═══ Section 3: What We Changed ═══ -->
         <section class="section" id="what-we-changed">
@@ -1237,6 +1150,10 @@ AI_ASSISTANT_TEMPERATURE_SUMMARY=0.5     # Moderate for natural summaries</code>
             </div>
         </section>
 
+        </div><!-- /tab-changes -->
+
+        <div id="tab-reference" class="tc">
+
         <!-- ═══ Section 6: Techniques ═══ -->
         <section class="section" id="techniques">
             <div class="section-header">
@@ -1609,26 +1526,18 @@ CREATE TABLE attendance_records (
             </div>
         </section>
 
+        </div><!-- /tab-reference -->
+
     </div>
 </div>
 
-<!-- ═══ Active nav highlight ═══ -->
 <script>
-    const sections = document.querySelectorAll('.section');
-    const navLinks = document.querySelectorAll('.nav-link');
-
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                navLinks.forEach(l => l.classList.remove('active'));
-                const id = entry.target.id;
-                const link = document.querySelector(`.nav-link[href="#${id}"]`);
-                if (link) link.classList.add('active');
-            }
-        });
-    }, { rootMargin: '-20% 0px -75% 0px' });
-
-    sections.forEach(s => observer.observe(s));
+function showTab(id){
+    document.querySelectorAll('.tc').forEach(e=>e.classList.remove('active'));
+    document.querySelectorAll('.tb').forEach(e=>e.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    event.target.classList.add('active');
+}
 </script>
 
 </body>
