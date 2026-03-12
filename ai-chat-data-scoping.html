@@ -210,7 +210,6 @@ code{font-family:'SF Mono',SFMono-Regular,Consolas,monospace;background:rgba(255
   <button class="tb active" onclick="showTab('principles')">Problem & Security</button>
   <button class="tb" onclick="showTab('strategies')">Scoping Strategies</button>
   <button class="tb" onclick="showTab('comparison')">Comparison & Examples</button>
-  <button class="tb" onclick="showTab('implementation')">Implementation</button>
 </div>
 
 <!-- ==================== TAB 1: PROBLEM & SECURITY ==================== -->
@@ -255,23 +254,6 @@ code{font-family:'SF Mono',SFMono-Regular,Consolas,monospace;background:rgba(255
     </table>
   </div>
 
-  <h3>What Industry Research Says</h3>
-
-  <blockquote>
-    <p>"In an enterprise setting, the LLM is not a database administrator &mdash; it is a translator. Like any untrusted component in a secure stack, it must be wrapped in deterministic guardrails, zero-trust principles, and rigorous state validation."</p>
-    <cite>&mdash; Lotus Labs, <em>Text-to-SQL: A Privacy Nightmare?</em> (2026)</cite>
-  </blockquote>
-
-  <blockquote>
-    <p>"Prompt restriction methods are insufficient to fully prevent direct P2SQL attacks, since it is difficult to guarantee the nonexistence of malicious inputs that can bypass them."</p>
-    <cite>&mdash; Pedro et al., <em>Prompt-to-SQL Injections in LLM-Integrated Web Applications</em>, ICSE 2025</cite>
-  </blockquote>
-
-  <blockquote>
-    <p>"LLM-based Text-to-SQL models are vulnerable to SQL injection via backdoor attacks [...] achieving attack success rates of up to 97% while maintaining high clean accuracy."</p>
-    <cite>&mdash; Xiao et al., <em>ToxicSQL</em>, ACM SIGMOD 2025</cite>
-  </blockquote>
-
   <h3>Our Principle: Hard Layers Over Soft Layers</h3>
 
   <div class="layer layer-soft">
@@ -294,34 +276,6 @@ code{font-family:'SF Mono',SFMono-Regular,Consolas,monospace;background:rgba(255
     </ul>
   </div>
 
-  <h3>References</h3>
-  <div class="ref-grid">
-    <div class="ref-card">
-      <div class="source">OWASP Top 10 for LLM Applications 2025</div>
-      <div class="finding">Prompt Injection is #1 risk; Excessive Agency warns against giving LLMs security decisions.</div>
-      <a href="https://genai.owasp.org/llm-top-10/">genai.owasp.org/llm-top-10/</a>
-    </div>
-    <div class="ref-card">
-      <div class="source">Pedro et al. &mdash; ICSE 2025</div>
-      <div class="finding">Prompt-to-SQL injection attacks bypass prompt-based restrictions; hardening prompts is "exceedingly fragile".</div>
-      <a href="https://syssec.dpss.inesc-id.pt/papers/pedro_icse25.pdf">syssec.dpss.inesc-id.pt/papers/pedro_icse25.pdf</a>
-    </div>
-    <div class="ref-card">
-      <div class="source">Xiao et al. &mdash; ToxicSQL, ACM SIGMOD 2025</div>
-      <div class="finding">Backdoor attacks on text-to-SQL models achieve 97% attack success rate while maintaining normal accuracy.</div>
-      <a href="https://arxiv.org/abs/2503.05445">arxiv.org/abs/2503.05445</a>
-    </div>
-    <div class="ref-card">
-      <div class="source">Lotus Labs &mdash; 2026</div>
-      <div class="finding">"The LLM is a translator, not a DBA" &mdash; must be wrapped in deterministic guardrails and zero-trust principles.</div>
-      <a href="https://lotuslabs.medium.com/text-to-sql-a-privacy-nightmare-how-to-architect-secure-enterprise-grade-text-to-sql-256615d1b59f">lotuslabs.medium.com/...</a>
-    </div>
-    <div class="ref-card">
-      <div class="source">Xiang et al. &mdash; 2023</div>
-      <div class="finding">Demonstrates how prompt injection chains into SQL injection in LLM-integrated applications.</div>
-      <a href="https://arxiv.org/pdf/2308.01990">arxiv.org/pdf/2308.01990</a>
-    </div>
-  </div>
 </div>
 
 <div class="section" id="security">
@@ -646,124 +600,6 @@ SQL passes through SqlScopeInjector unchanged (no WHERE injection)</pre>
 
 </div><!-- end tab-comparison -->
 
-<!-- ==================== TAB 4: IMPLEMENTATION ==================== -->
-<div class="tc" id="tab-implementation">
-
-<div class="section" id="pipeline">
-  <div class="section-header">
-    <div class="section-icon">&#9881;</div>
-    <h2>Implementation Pipeline</h2>
-  </div>
-
-  <pre>ChatOrchestrator::handleMessage()
-  |
-  |-- 1. Get permissions[] + access_scope from IdentityPermissionService (cached 300s)
-  |-- 2. TableAccessResolver::resolve(permissions[]) -> allowed_tables[]
-  |
-  |-- 3. Build schema text:
-  |       |-- If Gemini context caching -> FULL unfiltered schema (shared cache)
-  |       '-- Otherwise -> filtered schema for allowed_tables only
-  |
-  |-- 4. Single AI call -> generate SQL from question + schema
-  |
-  |-- 5. SqlExecutionPipeline.process(sql, allowed_tables, scope, userId, teamIds)
-  |       |-- [HARD] SqlQueryValidator.validate()       -> reject disallowed tables/syntax
-  |       |-- [HARD] SqlScopeInjector.inject()          -> add WHERE clauses for scope
-  |       |-- [HARD] SqlQueryValidator.checkBlocked()   -> re-check scoped SQL
-  |       '-- [HARD] SqlQueryExecutor.execute()         -> read-only transaction
-  |
-  |-- 6. On failure -> retry with error context (up to 3 rounds)
-  '-- 7. On success -> AI summary + format results</pre>
-</div>
-
-<div class="section" id="maintenance">
-  <div class="section-header">
-    <div class="section-icon">&#128295;</div>
-    <h2>Maintenance &amp; Validation</h2>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <tr><th>Event</th><th>Frequency</th><th>Effort</th></tr>
-      <tr><td>New table added</td><td>~1&ndash;2/month</td><td>Add 1 line to FEATURE_MAP + 1 line to SCOPE_COLUMNS</td></tr>
-      <tr><td>New permission added</td><td>~1&ndash;2/quarter</td><td>Usually no change (prefix matching)</td></tr>
-      <tr><td>Permission prefix renamed</td><td>Very rare</td><td>Update affected entries</td></tr>
-      <tr><td>Validate consistency</td><td>As needed</td><td><code>php artisan ai:validate-table-map --tenant={id}</code></td></tr>
-    </table>
-  </div>
-</div>
-
-<div class="section" id="files">
-  <div class="section-header">
-    <div class="section-icon">&#128193;</div>
-    <h2>Key Files</h2>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <tr><th>File</th><th>Purpose</th></tr>
-      <tr><td><code>Services/Access/TablePermissionRegistry.php</code></td><td>Single source of truth &mdash; all table/permission/scope mappings</td></tr>
-      <tr><td><code>Services/Access/TableAccessResolver.php</code></td><td>Runtime resolution &mdash; permissions[] -> allowed_tables[]</td></tr>
-      <tr><td><code>Services/Sql/SqlScopeInjector.php</code></td><td>Row-level WHERE injection using AST positions</td></tr>
-      <tr><td><code>Services/Sql/SqlQueryValidator.php</code></td><td>Table-level enforcement &mdash; rejects disallowed tables</td></tr>
-      <tr><td><code>Services/Sql/SqlExecutionPipeline.php</code></td><td>Orchestrates validate -> scope -> execute</td></tr>
-      <tr><td><code>Services/Sql/SqlQueryExecutor.php</code></td><td>Read-only MySQL execution with timeout</td></tr>
-      <tr><td><code>Repositories/UserScopeRepository.php</code></td><td>Fetches direct report IDs for TEAM scope</td></tr>
-      <tr><td><code>Console/Commands/ValidateTableMapCommand.php</code></td><td>Artisan command for consistency checks</td></tr>
-    </table>
-  </div>
-</div>
-
-<div class="section" id="future">
-  <div class="section-header">
-    <div class="section-icon">&#128302;</div>
-    <h2>Future Enhancement: Dynamic Permission-to-Table Mapping</h2>
-  </div>
-
-  <div class="alert alert-info">
-    <div class="alert-title">&#128218; Design Only &mdash; Not Yet Implemented</div>
-    <p>Move the static <code>TablePermissionRegistry</code> to a central MySQL table (<code>ai_table_access_rules</code>) with Redis caching for runtime resolution.</p>
-  </div>
-
-  <h3>Proposed Schema</h3>
-  <pre>CREATE TABLE ai_table_access_rules (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  permission_prefix VARCHAR(255) NOT NULL,
-  table_name VARCHAR(255) NOT NULL,
-  scope_column VARCHAR(100) NULL,
-  table_category ENUM('feature', 'reference', 'universal') NOT NULL DEFAULT 'feature',
-  shared_prefixes JSON NULL,
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
-  notes VARCHAR(500) NULL,
-  created_at TIMESTAMP NULL,
-  updated_at TIMESTAMP NULL,
-  UNIQUE KEY uq_prefix_table (permission_prefix, table_name)
-);</pre>
-
-  <h3>What Stays Static (Cannot Be Dynamic)</h3>
-  <div class="table-wrap">
-    <table>
-      <tr><th>Component</th><th>Why Static</th></tr>
-      <tr><td><code>blocked_tables</code></td><td>Security &mdash; system tables that must NEVER be exposed</td></tr>
-      <tr><td><code>blocked_columns</code></td><td>Security &mdash; password, iban, token, etc.</td></tr>
-      <tr><td>Subquery blocking</td><td>Security rule</td></tr>
-      <tr><td>Read-only transaction</td><td>Security rule</td></tr>
-    </table>
-  </div>
-  <p><strong>Principle:</strong> Security boundaries stay in code. Only the permission-to-table mapping moves to DB.</p>
-
-  <h3>Cache Strategy</h3>
-  <pre>Write:    Admin changes rule -> Save to DB -> Clear Redis cache key
-Read:     TableAccessResolver -> DynamicRegistry -> Redis cache (1h TTL)
-                                                  | miss -> DB query -> cache
-Fallback: If both Redis + DB fail -> fall back to static constants</pre>
-
-  <h3>When to Implement</h3>
-  <p>Not now. Current static registry works well. Consider when table mappings change frequently, multiple developers need to modify them simultaneously, or admin UI visibility is needed.</p>
-</div>
-
-</div><!-- end tab-implementation -->
 
 </div><!-- end content -->
 
