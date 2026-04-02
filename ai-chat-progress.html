@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chat Assistance — Progress Journey</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface-2: #1a2236;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.3);
+    --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.25);
+    --amber: #f59e0b;
+    --amber-glow: rgba(245, 158, 11, 0.25);
+    --cyan: #06b6d4;
+    --cyan-glow: rgba(6, 182, 212, 0.25);
+    --rose: #f43f5e;
+    --rose-glow: rgba(244, 63, 94, 0.25);
+    --purple: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.25);
+    --blue: #3b82f6;
+    --blue-glow: rgba(59, 130, 246, 0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(99,102,241,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(6,182,212,0.06) 0%, transparent 50%),
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #e2e8f0 0%, #6366f1 50%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .header p {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Summary Stats */
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 0;
+  }
+
+  /* The central line */
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(
+      to bottom,
+      var(--accent),
+      var(--green),
+      var(--cyan),
+      var(--amber),
+      var(--purple),
+      var(--blue),
+      var(--rose)
+    );
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+
+  /* Phase Group */
+  .phase-group {
+    margin-bottom: 64px;
+    position: relative;
+  }
+
+  .phase-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-left: 60px;
+    margin-bottom: 28px;
+  }
+
+  .phase-label.research { background: rgba(99,102,241,0.15); color: var(--accent); border: 1px solid rgba(99,102,241,0.3); }
+  .phase-label.benchmark { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+  .phase-label.analysis { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
+  .phase-label.decision { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+  .phase-label.technical { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+  .phase-label.exploration { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+  .phase-label.current { background: rgba(244,63,94,0.15); color: var(--rose); border: 1px solid rgba(244,63,94,0.3); }
+
+  /* Node */
+  .node {
+    position: relative;
+    margin-left: 60px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+
+  .node:hover {
+    border-color: rgba(99,102,241,0.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(99,102,241,0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Dot on the timeline */
+  .node::before {
+    content: '';
+    position: absolute;
+    left: -43px;
+    top: 28px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    background: var(--bg);
+    z-index: 2;
+  }
+
+  /* Connector line from dot to card */
+  .node::after {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 35px;
+    width: 27px;
+    height: 2px;
+    background: rgba(99,102,241,0.3);
+  }
+
+  /* Color-coded dots */
+  .phase-group.research .node::before { border-color: var(--accent); }
+  .phase-group.benchmark .node::before { border-color: var(--green); }
+  .phase-group.analysis .node::before { border-color: var(--cyan); }
+  .phase-group.decision .node::before { border-color: var(--amber); }
+  .phase-group.technical .node::before { border-color: var(--purple); }
+  .phase-group.exploration .node::before { border-color: var(--blue); }
+  .phase-group.current .node::before { border-color: var(--rose); background: var(--rose); box-shadow: 0 0 12px var(--rose-glow); animation: pulse 2s infinite; }
+
+  .phase-group.research .node::after { background: rgba(99,102,241,0.3); }
+  .phase-group.benchmark .node::after { background: rgba(16,185,129,0.3); }
+  .phase-group.analysis .node::after { background: rgba(6,182,212,0.3); }
+  .phase-group.decision .node::after { background: rgba(245,158,11,0.3); }
+  .phase-group.technical .node::after { background: rgba(168,85,247,0.3); }
+  .phase-group.exploration .node::after { background: rgba(59,130,246,0.3); }
+  .phase-group.current .node::after { background: rgba(244,63,94,0.3); }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 6px var(--rose-glow); }
+    50% { box-shadow: 0 0 18px var(--rose-glow), 0 0 30px var(--rose-glow); }
+  }
+
+  .node-step {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .node-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #f1f5f9;
+  }
+
+  .node-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .node-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .tag.report {
+    background: rgba(99,102,241,0.1);
+    color: #818cf8;
+    border-color: rgba(99,102,241,0.2);
+  }
+
+  a.tag.report {
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  a.tag.report:hover {
+    background: rgba(99,102,241,0.25);
+    border-color: rgba(99,102,241,0.5);
+    color: #a5b4fc;
+  }
+
+  .tag.output {
+    background: rgba(16,185,129,0.1);
+    color: #34d399;
+    border-color: rgba(16,185,129,0.2);
+  }
+
+  .tag.model {
+    background: rgba(245,158,11,0.1);
+    color: #fbbf24;
+    border-color: rgba(245,158,11,0.2);
+  }
+
+  .tag.status-done {
+    background: rgba(16,185,129,0.15);
+    color: #34d399;
+    border-color: rgba(16,185,129,0.3);
+  }
+
+  .tag.status-active {
+    background: rgba(244,63,94,0.15);
+    color: #fb7185;
+    border-color: rgba(244,63,94,0.3);
+    animation: pulse-tag 2s infinite;
+  }
+
+  @keyframes pulse-tag {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .tag.status-next {
+    background: rgba(148,163,184,0.1);
+    color: #94a3b8;
+    border-color: rgba(148,163,184,0.2);
+  }
+
+  /* Arrow connector between phases */
+  .phase-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: -20px 0 -20px 60px;
+    padding: 16px 0;
+    color: var(--text-muted);
+    font-size: 20px;
+    opacity: 0.4;
+  }
+
+  /* Decision diamond */
+  .decision-box {
+    position: relative;
+    margin-left: 60px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03));
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 16px;
+    padding: 24px 28px;
+    transition: all 0.3s ease;
+  }
+
+  .decision-box::before {
+    content: '';
+    position: absolute;
+    left: -43px;
+    top: 28px;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 3px solid var(--amber);
+    background: var(--bg);
+    transform: rotate(45deg);
+    z-index: 2;
+  }
+
+  .decision-box::after {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 35px;
+    width: 27px;
+    height: 2px;
+    background: rgba(245,158,11,0.3);
+  }
+
+  .decision-icon {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 80px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .footer .brand {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .container { padding: 32px 12px 60px; }
+    .header h1 { font-size: 28px; }
+    .stats-row { gap: 20px; }
+    .stat-number { font-size: 24px; }
+    .timeline::before { left: 18px; }
+    .node, .decision-box, .phase-label, .phase-arrow { margin-left: 44px; }
+    .node::before, .decision-box::before { left: -37px; }
+    .node::after, .decision-box::after { left: -21px; width: 21px; }
+    .node { padding: 18px 16px; }
+    .node-title { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">Idaratech AI Division</div>
+    <h1>AI Chat Assistance<br>Progress Journey</h1>
+    <p>End-to-end research, benchmarking, and implementation progress for the AI-powered SQL Chat module.</p>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Phases</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">20+</div>
+        <div class="stat-label">Reports</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">10+</div>
+        <div class="stat-label">Models Tested</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">3</div>
+        <div class="stat-label">Benchmark Rounds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+
+    <!-- ═══════════════════ PHASE 1: Research ═══════════════════ -->
+    <div class="phase-group research">
+      <div class="phase-label research">Phase 1 — Model Research</div>
+
+      <div class="node">
+        <div class="node-step">Step 1</div>
+        <div class="node-title">Model Selection Research</div>
+        <div class="node-desc">
+          Evaluated available LLM models for the AI Chat use case — comparing capabilities, pricing tiers, Arabic language support, SQL generation quality, and API availability.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">model-selection-report.html</span>
+          <span class="tag model">GPT-4o</span>
+          <span class="tag model">Claude</span>
+          <span class="tag model">Gemini</span>
+          <span class="tag model">DeepSeek</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 2: Benchmark ═══════════════════ -->
+    <div class="phase-group benchmark">
+      <div class="phase-label benchmark">Phase 2 — Initial Benchmarking</div>
+
+      <div class="node">
+        <div class="node-step">Step 2</div>
+        <div class="node-title">First Benchmark — Simple Tests</div>
+        <div class="node-desc">
+          Ran initial benchmarks with simple SQL examples across shortlisted models. Results were promising but not production-accurate — served as a directional signal for narrowing candidates.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">benchmark-report.html</span>
+          <span class="tag">Simple SQL Queries</span>
+          <span class="tag">EN + AR Tests</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 3: Fine-Tuning Analysis ═══════════════════ -->
+    <div class="phase-group analysis">
+      <div class="phase-label analysis">Phase 3 — Fine-Tuning Investigation</div>
+
+      <div class="node">
+        <div class="node-step">Step 3</div>
+        <div class="node-title">Fine-Tuning Feasibility Report</div>
+        <div class="node-desc">
+          Investigated whether fine-tuning would meaningfully improve model quality for our domain-specific HR/SQL use case. Analyzed cost implications and model support for fine-tuning.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">idaratech-finetuning-report.html</span>
+          <span class="tag">Cost Analysis</span>
+          <span class="tag">Model Support Matrix</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+
+      <div class="node">
+        <div class="node-step">Step 4</div>
+        <div class="node-title">Expanded Benchmarks — New Models Added</div>
+        <div class="node-desc">
+          Iterated benchmarks multiple times, each round adding newly available or previously untested models (MiniMax, Gemini Flash, etc.) with richer test data and more complex queries.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">finetuning-report-v2.html</span>
+          <span class="tag report">finetuning-report-v3.html</span>
+          <span class="tag model">MiniMax</span>
+          <span class="tag model">Gemini Flash</span>
+          <span class="tag">Multiple Iterations</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+
+      <div class="node">
+        <div class="node-step">Step 5</div>
+        <div class="node-title">Clean SQL Test Dataset</div>
+        <div class="node-desc">
+          Built a curated set of clean SQL question-answer pairs against the real Idaratech schema — proper test data for accurate, reproducible benchmarking instead of ad-hoc examples.
+        </div>
+        <div class="node-tags">
+          <span class="tag output">Training Data</span>
+          <span class="tag">Schema-Aligned</span>
+          <span class="tag">EN + AR Queries</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 4: Final Benchmark ═══════════════════ -->
+    <div class="phase-group benchmark">
+      <div class="phase-label benchmark">Phase 4 — Final SQL Benchmark</div>
+
+      <div class="node">
+        <div class="node-step">Step 6</div>
+        <div class="node-title">AI SQL Chat Benchmark v3 — Final Race</div>
+        <div class="node-desc">
+          Comprehensive benchmark of the remaining candidate models using the clean test dataset. Evaluated SQL correctness, Arabic understanding, latency, and cost — the definitive comparison.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">AI SQL Chat Benchmark Report-v3.html</span>
+          <span class="tag report">exec-cost-report-v3.html</span>
+          <span class="tag report">gemini-pro-vs-flash-comparison.html</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ DECISION POINT ═══════════════════ -->
+    <div class="phase-group decision">
+      <div class="phase-label decision">Decision Point</div>
+
+      <div class="decision-box">
+        <div class="node-step"><span class="decision-icon">&#9670;</span> Key Decision</div>
+        <div class="node-title">Selected Gemini 2.5 Flash</div>
+        <div class="node-desc">
+          <strong>Gemini 2.5 Flash</strong> chosen as the primary model — best balance of cost efficiency, quality in both English and Arabic, and affordable fine-tuning. Post fine-tuning expected to reach production-grade accuracy.
+        </div>
+        <div class="node-tags">
+          <span class="tag model">Gemini 2.5 Flash</span>
+          <span class="tag">Low Cost</span>
+          <span class="tag">Strong Arabic</span>
+          <span class="tag">Fine-Tunable</span>
+          <span class="tag report">fine-tuning-case-gemini-2.5-flash.html</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 5: Technical Docs ═══════════════════ -->
+    <div class="phase-group technical">
+      <div class="phase-label technical">Phase 5 — Technical Documentation</div>
+
+      <div class="node">
+        <div class="node-step">Step 7</div>
+        <div class="node-title">Architecture & Security Design</div>
+        <div class="node-desc">
+          Documented the full AI Chat module architecture — system design, API flow, security model, and how it fits into the Idaratech multi-tenant platform.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">ai-chat-architecture.html</span>
+          <span class="tag">System Design</span>
+          <span class="tag">Security Model</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+
+      <div class="node">
+        <div class="node-step">Step 8</div>
+        <div class="node-title">Data Scoping Strategy</div>
+        <div class="node-desc">
+          Defined how tenant data isolation is enforced at the AI layer — ensuring queries are scoped to the correct workspace and preventing cross-tenant data leakage.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">ai-chat-data-scoping.html</span>
+          <span class="tag">Tenant Isolation</span>
+          <span class="tag">Query Scoping</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+
+      <div class="node">
+        <div class="node-step">Step 9</div>
+        <div class="node-title">Prompt Engineering Guide</div>
+        <div class="node-desc">
+          Crafted and documented the prompt engineering strategy — system prompts, schema injection, few-shot examples, and guardrails for reliable SQL generation.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">ai-chat-prompt-engineering.html</span>
+          <span class="tag">System Prompts</span>
+          <span class="tag">Few-Shot Examples</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 6: RAG Research ═══════════════════ -->
+    <div class="phase-group exploration">
+      <div class="phase-label exploration">Phase 6 — RAG Exploration</div>
+
+      <div class="node">
+        <div class="node-step">Step 10</div>
+        <div class="node-title">RAG Architecture Research</div>
+        <div class="node-desc">
+          Discovered that companies like Uber and LinkedIn use RAG internally for similar AI features. Explored RAG as an alternative to fine-tuning — offering model flexibility (not locked to one provider) and dynamic knowledge updates without retraining.
+        </div>
+        <div class="node-tags">
+          <span class="tag report">RAG_ARCHITECTURE_BRIEF.html</span>
+          <span class="tag">Uber Case Study</span>
+          <span class="tag">LinkedIn Case Study</span>
+          <span class="tag">Model-Agnostic</span>
+          <span class="tag status-done">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PHASE 7: Current ═══════════════════ -->
+    <div class="phase-group current">
+      <div class="phase-label current">Phase 7 — In Progress</div>
+
+      <div class="node">
+        <div class="node-step">Step 11</div>
+        <div class="node-title">Fine-Tuning Proof of Concept</div>
+        <div class="node-desc">
+          Preparing training data and setting up a fine-tuning pipeline using a local Ollama model. Goal: validate the fine-tuning workflow end-to-end, then benchmark before vs. after to measure the delta — even if the local model is weaker, it proves the process works.
+        </div>
+        <div class="node-tags">
+          <span class="tag model">Ollama (Local)</span>
+          <span class="tag">Training Data Prep</span>
+          <span class="tag">Before/After Benchmark</span>
+          <span class="tag status-active">In Progress</span>
+        </div>
+      </div>
+
+      <div class="node" style="opacity: 0.6;">
+        <div class="node-step">Next</div>
+        <div class="node-title">Production Fine-Tuning — Gemini 2.5 Flash</div>
+        <div class="node-desc">
+          Apply the validated fine-tuning pipeline to Gemini 2.5 Flash with production training data. Run final benchmarks and decide between fine-tuned model vs RAG approach — or a hybrid of both.
+        </div>
+        <div class="node-tags">
+          <span class="tag model">Gemini 2.5 Flash</span>
+          <span class="tag">Production Fine-Tune</span>
+          <span class="tag">Fine-Tune vs RAG Decision</span>
+          <span class="tag status-next">Upcoming</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p><span class="brand">Idaratech</span> &mdash; AI Chat Assistance Progress Report &mdash; April 2026</p>
+  </div>
+
+</div>
+
+</body>
+</html>
