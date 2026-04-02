@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Assistant — RAG Architecture Brief</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2333; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --purple: #d2a8ff; --orange: #f0883e; --red: #f85149; --yellow: #d29922;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  .hero { background: linear-gradient(135deg, #1a1f35 0%, #0d1117 50%, #0a1628 100%); border-bottom: 1px solid var(--border); padding: 50px 40px 40px; text-align: center; }
+  .hero h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 10px; }
+  .hero h1 span { color: var(--accent); }
+  .hero .sub { color: var(--muted); font-size: 1rem; max-width: 700px; margin: 0 auto; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  h2 { font-size: 1.5rem; font-weight: 700; margin: 50px 0 18px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h2 .n { background: var(--accent); color: var(--bg); width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+  h3 { font-size: 1.1rem; margin: 24px 0 10px; color: var(--purple); }
+  h4 { font-size: 0.95rem; margin: 16px 0 6px; color: var(--accent); }
+  p { margin-bottom: 12px; font-size: 0.92rem; }
+  strong { color: #fff; }
+  a { color: var(--accent); text-decoration: none; }
+  code { background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', monospace; font-size: 0.85em; color: var(--accent); }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; margin: 12px 0 20px; }
+  pre code { background: none; padding: 0; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 0.86rem; }
+  th { background: var(--surface2); text-align: left; padding: 9px 12px; border-bottom: 2px solid var(--border); font-weight: 600; color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin: 14px 0; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 14px 0; }
+  .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; margin: 18px 0; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .chart-card h4 { margin: 0 0 12px; color: var(--text); font-size: 0.92rem; text-align: center; }
+  .chart-card canvas { max-height: 280px; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 14px 0; position: relative; overflow: hidden; }
+  .step-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .step-card.s1::before { background: var(--accent); }
+  .step-card.s2::before { background: var(--green); }
+  .step-card.s3::before { background: var(--purple); }
+  .step-card.s4::before { background: var(--orange); }
+  .step-card.s5::before { background: var(--yellow); }
+  .step-card.s6::before { background: var(--red); }
+  .step-num { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; }
+  .step-card.s1 .step-num { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .step-card.s2 .step-num { background: rgba(63,185,80,0.15); color: var(--green); }
+  .step-card.s3 .step-num { background: rgba(210,168,255,0.15); color: var(--purple); }
+  .step-card.s4 .step-num { background: rgba(240,136,62,0.15); color: var(--orange); }
+  .step-card.s5 .step-num { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .step-card.s6 .step-num { background: rgba(248,81,73,0.15); color: var(--red); }
+  .step-card h3 { margin: 0 0 8px; }
+  .step-meta { display: flex; gap: 20px; flex-wrap: wrap; margin: 8px 0; font-size: 0.82rem; color: var(--muted); }
+  .flow-arrow { text-align: center; font-size: 1.5rem; color: var(--border); margin: 6px 0; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .pros-cons .card { border-top: 3px solid; }
+  .pros-cons .pros { border-top-color: var(--green); }
+  .pros-cons .cons { border-top-color: var(--red); }
+  .pros-cons ul { padding-left: 18px; font-size: 0.86rem; color: var(--muted); }
+  .pros-cons li { margin-bottom: 6px; }
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 24px 0; }
+  .toc a { display: block; padding: 3px 0; font-size: 0.86rem; color: var(--muted); }
+  .toc a:hover { color: var(--accent); }
+  .toc a strong { color: var(--text); }
+  .highlight { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); border-radius: 8px; padding: 14px 18px; margin: 14px 0; }
+  .highlight p { margin: 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+  .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+  .badge-orange { background: rgba(240,136,62,0.15); color: var(--orange); }
+  @media (max-width: 768px) { .hero { padding: 30px 16px 24px; } .hero h1 { font-size: 1.5rem; } .pros-cons { grid-template-columns: 1fr; } .chart-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>AI Assistant: <span>RAG Architecture</span> Brief</h1>
+  <p class="sub">How Retrieval-Augmented Generation works in our multi-agent text-to-SQL pipeline &mdash; what it is, how vectors work, the complete request flow, real production data, and the pros/cons tradeoff.</p>
+</div>
+<div class="container">
+<div class="toc">
+  <a href="#s1"><strong>1.</strong> What is RAG?</a>
+  <a href="#s2"><strong>2.</strong> What are Vectors? How is data converted?</a>
+  <a href="#s3"><strong>3.</strong> Our RAG Stack &mdash; Package &amp; Storage</a>
+  <a href="#s4"><strong>4.</strong> Complete Request Flow &mdash; Step by Step</a>
+  <a href="#s5"><strong>5.</strong> Real Production Examples &amp; Token Analysis</a>
+  <a href="#s6"><strong>6.</strong> Pros &amp; Cons of RAG</a>
+  <a href="#s7"><strong>7.</strong> RAG vs Fine-Tuning</a>
+</div>
+
+<h2 id="s1"><span class="n">1</span> What is RAG?</h2>
+<p><strong>RAG (Retrieval-Augmented Generation)</strong> is a technique where, before asking the LLM to generate an answer, we <strong>retrieve relevant examples</strong> from a knowledge base and inject them into the prompt. The LLM then uses these examples as reference to produce a better answer.</p>
+<div class="highlight"><p><strong>In our case:</strong> When a user asks "How many employees are on leave?", we search our database of 486 pre-written question-to-SQL pairs, find the 3 most similar questions, and show them to the LLM as examples. The LLM sees "here is how a similar question was answered before" and generates more accurate SQL.</p></div>
+<h3>Without RAG vs With RAG</h3>
+<div class="card-grid">
+  <div class="card" style="border-left: 3px solid var(--red);"><h4 style="color:var(--red); margin-top:0;">Without RAG</h4><pre><code>System: You are an SQL assistant. Here is the schema...
+User: How many employees are on leave today?
+LLM: (guesses SQL from schema alone)
+Result: May use wrong table, wrong column, wrong JOIN</code></pre></div>
+  <div class="card" style="border-left: 3px solid var(--green);"><h4 style="color:var(--green); margin-top:0;">With RAG</h4><pre><code>System: You are an SQL assistant. Here is the schema...
+
+Similar examples:
+Q: "Who is on leave this week?"
+SQL: SELECT u.name FROM hr_requests hr JOIN users u...
+     WHERE hr.status = 'approved'...
+
+User: How many employees are on leave today?
+LLM: (sees examples, follows the same patterns)
+Result: Correct table, correct columns, correct JOIN</code></pre></div>
+</div>
+
+<h2 id="s2"><span class="n">2</span> What are Vectors? How is data converted?</h2>
+<h3>What is a Vector?</h3>
+<p>A vector is a list of numbers (like <code>[0.12, -0.45, 0.78, ...]</code>) that represents the <strong>meaning</strong> of a text. Texts with similar meaning have vectors that are close to each other in mathematical space.</p>
+<div class="card"><pre><code>Text: "How many employees are on leave?"
+  Embedding model produces: [0.12, -0.45, 0.78, 0.33, -0.91, ...] (1024 numbers)
+
+Text: "Count of staff on vacation"
+  Embedding model produces: [0.11, -0.44, 0.77, 0.35, -0.89, ...] (1024 numbers)
+                             ^ very similar numbers = similar meaning!
+
+Text: "What is the company revenue?"
+  Embedding model produces: [-0.67, 0.23, -0.12, 0.88, 0.45, ...] (1024 numbers)
+                             ^ very different numbers = different meaning</code></pre></div>
+
+<h3>How We Convert Data to Vectors</h3>
+<table>
+  <thead><tr><th>Step</th><th>What Happens</th><th>Tool</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1. Golden Queries</strong></td><td>We have 486 pre-written question-to-SQL pairs stored in <code>golden_queries.json</code></td><td>Manual curation</td></tr>
+    <tr><td><strong>2. Embedding</strong></td><td>Each question (EN + AR) is sent to the <code>bge-m3</code> model which returns a vector of 1024 numbers</td><td>Ollama + bge-m3</td></tr>
+    <tr><td><strong>3. Storage</strong></td><td>The vector + metadata (SQL, domain, tables) are saved to disk</td><td>NeuronAI FileVectorStore</td></tr>
+    <tr><td><strong>4. Search</strong></td><td>When user asks a question, it is also embedded, then cosine similarity finds the closest 3 vectors</td><td>NeuronAI RAG</td></tr>
+  </tbody>
+</table>
+<div class="card"><h4 style="margin-top:0;">Seeding Process (run once)</h4><pre><code>$ php artisan ai-assistant:seed-queries --fresh
+
+For each of the 486 golden queries:
+  1. Take question_en: "How many employees are on leave?"
+     Send to bge-m3, get vector [0.12, -0.45, ...]
+     Save: {vector, sql, domain, tables, language: "en"}
+
+  2. Take question_ar: "كم عدد الموظفين في إجازة؟"
+     Send to bge-m3, get vector [0.15, -0.42, ...]
+     Save: {vector, sql, domain, tables, language: "ar"}
+
+Result: 972 vectors stored (486 x 2 languages)</code></pre></div>
+
+<h3>Adding New Examples in the Future</h3>
+<div class="card"><pre><code>$ php artisan ai-assistant:add-query
+
+# Interactive prompt:
+  English question: What is the average salary by department?
+  Arabic question: ما هو متوسط الراتب حسب القسم؟
+  SQL: SELECT d.name, AVG(u.basic_salary) FROM users u JOIN departments d...
+  Domain: payroll
+  Tables: users, departments
+
+# What happens:
+  1. Appended to golden_queries.json
+  2. Both EN + AR questions embedded with bge-m3
+  3. 2 new vectors added to the store
+  4. Available immediately for retrieval, no retraining needed!</code></pre></div>
+
+<h3>Do we send vectors to the LLM?</h3>
+<div class="highlight"><p><strong>No!</strong> The LLM never sees vectors. Vectors are only used for <em>searching</em>. The flow is:</p></div>
+<table>
+  <thead><tr><th>Step</th><th>What happens</th><th>Who sees it</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>User question embedded into vector</td><td>Embedding model (bge-m3)</td></tr>
+    <tr><td>2</td><td>Vector compared to 972 stored vectors via cosine similarity</td><td>Math (no LLM)</td></tr>
+    <tr><td>3</td><td>Top 3 matches found, their <strong>text</strong> (question + SQL) retrieved</td><td>Vector store</td></tr>
+    <tr><td>4</td><td>The <strong>text</strong> examples injected into the LLM prompt</td><td>LLM sees plain text, not vectors</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s3"><span class="n">3</span> Our RAG Stack &mdash; Package &amp; Storage</h2>
+<table>
+  <thead><tr><th>Component</th><th>Technology</th><th>Details</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Framework</strong></td><td><a href="https://docs.neuron-ai.dev/" target="_blank">NeuronAI</a> (<code>inspector-apm/neuron-ai</code>)</td><td>PHP framework for AI agents + RAG. One package handles agents, tools, workflows, AND RAG.</td></tr>
+    <tr><td><strong>Embedding Model</strong></td><td><code>bge-m3</code> via Ollama (local)</td><td>Multilingual model by BAAI. Strong Arabic + English. Runs locally in Docker, free. 1024-dim vectors.</td></tr>
+    <tr><td><strong>Vector Store</strong></td><td>NeuronAI <code>FileVectorStore</code></td><td>Stores vectors as files at <code>storage/ai/vectors/golden_queries/</code>. Persists via Docker volume.</td></tr>
+    <tr><td><strong>RAG Type</strong></td><td>Basic / Naive RAG</td><td>Simple: embed, search, top-K. Not agentic, graph, or corrective RAG.</td></tr>
+    <tr><td><strong>Golden Queries</strong></td><td>486 curated examples</td><td>972 vectors total (486 EN + 486 AR). Covers all HR domains.</td></tr>
+    <tr><td><strong>Similarity</strong></td><td>Cosine similarity, top-3</td><td>Returns the 3 most semantically similar golden queries.</td></tr>
+  </tbody>
+</table>
+<h3>Where is everything stored?</h3>
+<pre><code>backend-v2/
+  Modules/AiAssistant/
+    Agents/RAG/FewShotRetriever.php       &lt;- NeuronAI RAG class
+    database/data/golden_queries.json     &lt;- 486 curated pairs (source of truth)
+    Config/config.php                     &lt;- RAG settings
+
+  storage/ai/vectors/golden_queries/      &lt;- 972 vector files (generated by seed)
+
+docker-compose.yaml:
+  ollama:                                 &lt;- Runs bge-m3 locally</code></pre>
+
+<h2 id="s4"><span class="n">4</span> Complete Request Flow &mdash; Step by Step</h2>
+<p>When a user sends a message, it goes through <strong>6 steps</strong>. 4 are LLM agents, 1 is RAG (vector search), and 1 is output formatting.</p>
+
+<div class="step-card s6"><span class="step-num">PRE-PIPELINE</span><h3 style="color:var(--red);">Security + Permissions + Conversation</h3><p>Before any agent runs: SecurityService checks prompt injection (17+ patterns). ConversationService loads/creates conversation + history. AccessControlService resolves permissions via gRPC, determines allowed tables and access scope.</p><div class="step-meta"><span>No LLM call</span><span>0 tokens</span><span>~100-500ms</span></div><p style="font-size:0.82rem; color:var(--red); margin:8px 0 0;"><strong>Without it:</strong> Prompt injection attacks succeed. Unauthorized data access. No conversation context for follow-ups.</p></div>
+<div class="flow-arrow">&#9660;</div>
+
+<div class="step-card s1"><span class="step-num">STEP 1 &mdash; LLM AGENT</span><h3 style="color:var(--accent);">IntentClassifierAgent</h3><p>Classifies the user question into one of 5 intents: <code>sql_query</code>, <code>chart_request</code>, <code>report_request</code>, <code>clarification_needed</code>, <code>conversational</code>. Also identifies the HR domain (leaves, attendance, payroll, employees, etc.).</p><p><strong>Short-circuit:</strong> If intent is <code>conversational</code> ("hello", "thanks"), skips ALL remaining steps. Saves ~40K tokens.</p><div class="step-meta"><span><span class="badge badge-blue">LLM Call</span></span><span>~2-4K tokens</span><span>~2-10s</span></div><p style="font-size:0.82rem; color:var(--red); margin:8px 0 0;"><strong>Without it:</strong> Every message including "hello" triggers the full SQL pipeline, wasting ~40K tokens and 30+ seconds per conversational message.</p></div>
+<div class="flow-arrow">&#9660;</div>
+
+<div class="step-card s2"><span class="step-num">STEP 2 &mdash; LLM AGENT + 1 TOOL</span><h3 style="color:var(--green);">TableSelectorAgent</h3>
+<p>Selects 3-7 most relevant tables from 30+ available. The agent does <strong>NOT</strong> see the full database schema &mdash; it sees only table <strong>names and short descriptions</strong> grouped by HR domain.</p>
+
+<h4>How It Works (3-Phase Process)</h4>
+<div class="card" style="margin:10px 0;"><pre><code>Phase 1: Agent receives the user question
+  "Show me approved leave requests by type for 2025"
+
+Phase 2: Agent calls the get_allowed_tables tool
+  Tool returns table names + descriptions grouped by domain:
+
+  Employees:
+    - users: Main employee table &mdash; names, contact, status, role, department
+    - departments: Organizational departments
+    - positions: Job positions/titles
+
+  Leaves &amp; HR Requests:
+    - hr_requests: Leave, exit-reentry, business trip requests with status
+    - leave_balances: Employee leave balance per type per year
+
+  Attendance &amp; Time:
+    - timesheets: Daily attendance &mdash; clock times, late hours, overtime
+
+  Payroll:
+    - payslips: Employee payslip records per payroll run
+    - user_salaries: Salary records &mdash; basic, housing, transport
+  ... (30+ tables total, names + 1-line description each)
+
+Phase 3: Agent selects the relevant tables
+  Based on the question + domain hints + table descriptions:
+  &rarr; ["users", "hr_requests", "leave_balances"]
+  + reasoning: "Need hr_requests for leave data, users for employee info"</code></pre></div>
+
+<h4>What the Agent Sees vs Does NOT See</h4>
+<table>
+  <thead><tr><th>Sees (in the tool response)</th><th>Does NOT see</th></tr></thead>
+  <tbody>
+    <tr><td>Table names: <code>hr_requests</code></td><td>Column names (id, type, status, from, to, days...)</td></tr>
+    <tr><td>Description: "Leave, exit-reentry requests with status"</td><td>Column types (VARCHAR, ENUM, DATE...)</td></tr>
+    <tr><td>Group: "Leaves &amp; HR Requests"</td><td>Foreign keys, indexes</td></tr>
+    <tr><td>Domain rules in system prompt</td><td>Full CREATE TABLE DDL</td></tr>
+  </tbody>
+</table>
+
+<h4>After Selection: Auto-Expansion + Security</h4>
+<p><strong>FK Expansion:</strong> After the LLM picks tables, the system auto-expands with foreign-key referenced tables. If <code>hr_requests</code> has <code>user_id REFERENCES users(id)</code>, <code>users</code> is auto-included even if the LLM forgot it.</p>
+<p><strong>Security Filter:</strong> The final list is filtered against the user's <code>allowedTables</code>. If the LLM suggests a table the user has no permission for, it is silently removed.</p>
+
+<div class="step-meta"><span><span class="badge badge-blue">LLM Call + 1 Tool Call</span></span><span>~6-12K tokens</span><span>~8-30s</span></div><p style="font-size:0.82rem; color:var(--red); margin:8px 0 0;"><strong>Without it:</strong> The SQL agent would receive DDL for ALL 30+ tables (500+ columns = ~30-60K tokens). With table selection, it sees only 40-80 columns from 5-7 tables (~5-10K tokens). This is the <strong>#1 accuracy improvement</strong> per Uber &mdash; fewer tables = less noise = less hallucination.</p></div>
+<div class="flow-arrow">&#9660;</div>
+
+<div class="step-card s3"><span class="step-num">STEP 3 &mdash; RAG (VECTOR SEARCH)</span><h3 style="color:var(--purple);">FewShotRetriever (RAG)</h3><p>Embeds user question into a vector, searches 972 stored vectors via cosine similarity, returns top 3 most similar golden query examples. <strong>No LLM call</strong> &mdash; pure vector math. The 3 examples are injected into the SQL agent's prompt.</p><div class="step-meta"><span><span class="badge badge-green">No LLM Call</span></span><span>0 LLM tokens (embedding only)</span><span>~150-5000ms</span></div><p style="font-size:0.82rem; color:var(--red); margin:8px 0 0;"><strong>Without it:</strong> SQL agent generates SQL from rules alone without seeing similar working examples. Both Uber and LinkedIn confirmed few-shot examples are the #1 accuracy technique. Adds ~3-5K tokens but significantly improves correctness.</p></div>
+<div class="flow-arrow">&#9660;</div>
+
+<div class="step-card s4"><span class="step-num">STEP 4 &mdash; LLM AGENT (WITH 5 TOOLS)</span><h3 style="color:var(--orange);">SqlGeneratorAgent</h3>
+<p>The core agent. Receives: schema DDL (selected tables only) + 3 RAG examples + conversation history. Generates SQL, then uses tools to validate, fix, and execute. The LLM <strong>decides which tools to call and in what order</strong>.</p>
+
+<h4>What the Agent Receives in its Prompt</h4>
+<div class="card" style="margin:10px 0;"><pre><code>[System prompt: SQL rules + HR domain knowledge + security rules]
+
+&lt;schema&gt;
+CREATE TABLE hr_requests (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT REFERENCES users(id),
+  type VARCHAR(255),
+  group ENUM('leave','exit-reentry','business-trip',...),
+  status ENUM('approved','pending','rejected',...),
+  ...
+);
+CREATE TABLE users ( ... );
+&lt;/schema&gt;
+
+&lt;examples&gt;
+Question: Who is on leave this week?
+SQL: SELECT u.name, hr.type FROM hr_requests hr JOIN users u...
+
+Question: How many sick leaves this month?
+SQL: SELECT COUNT(*) FROM hr_requests WHERE type = 'sick-leave'...
+&lt;/examples&gt;
+
+[Conversation history if any]
+
+User: Show me approved leave requests by type for 2025</code></pre></div>
+
+<h4>5 Tools (in typical call order)</h4>
+<table>
+  <thead><tr><th>#</th><th>Tool</th><th>Input</th><th>Output</th><th>When the LLM calls it</th></tr></thead>
+  <tbody>
+    <tr><td style="color:var(--accent);font-weight:700;">1</td><td><code>get_schema_for_tables</code></td><td>Array of table names<br><code>["hr_requests", "users"]</code></td><td>CREATE TABLE DDL for those tables only<br>(or "ERROR: Access denied for table X")</td><td>When it needs to see columns for additional tables not already in its prompt</td></tr>
+    <tr><td style="color:var(--accent);font-weight:700;">2</td><td><code>validate_sql</code></td><td>SQL string<br><code>SELECT COUNT(*) FROM hr_requests...</code></td><td>"VALID: Query passed all checks"<br>or "ERROR: Column 'leave_date' not found"</td><td><strong>After generating SQL</strong> &mdash; checks syntax, table access, blocked columns, LIMIT, runs EXPLAIN dry-run. No data returned.</td></tr>
+    <tr><td style="color:var(--accent);font-weight:700;">3</td><td><code>execute_sql</code></td><td>Validated SQL string</td><td>JSON: <code>{"rows": [...], "columns": [...], "total_count": 5}</code><br>or "EXECUTION ERROR: ..."</td><td><strong>After validate_sql returns VALID</strong> &mdash; injects row-level security (scope), executes in read-only transaction with timeout.</td></tr>
+    <tr><td style="color:var(--muted);font-weight:700;">4</td><td><code>get_column_values</code></td><td>Table + column name<br><code>("hr_requests", "type")</code></td><td>Top 20 distinct values<br><code>["vacation-leave", "sick-leave", ...]</code><br>or "ERROR: Access denied"</td><td>When it does not know valid enum/categorical values for a WHERE clause. Example: "What are the valid leave types?"</td></tr>
+    <tr><td style="color:var(--muted);font-weight:700;">5</td><td><code>get_similar_examples</code></td><td>Question text<br><code>"overtime calculation"</code></td><td>2-3 similar golden SQL examples from RAG<br><code>Question: X\nSQL: Y</code></td><td>When the initial 3 RAG examples are not relevant enough and it needs more specific references.</td></tr>
+  </tbody>
+</table>
+
+<h4>Self-Correction Flow (the key advantage over the old system)</h4>
+<div class="card" style="margin:10px 0;"><pre><code>Old system (rigid):
+  Generate SQL &rarr; execute &rarr; error &rarr; retry with same context (max 3x) &rarr; give up
+
+New system (intelligent):
+  LLM generates SQL
+  &rarr; calls validate_sql &rarr; "ERROR: Column 'leave_date' not found"
+  &rarr; LLM reads the error, thinks: "wrong column name"
+  &rarr; calls get_column_values("hr_requests", "from") &rarr; sees date values
+  &rarr; fixes SQL: changes 'leave_date' to 'from'
+  &rarr; calls validate_sql again &rarr; "VALID"
+  &rarr; calls execute_sql &rarr; returns results
+  
+The LLM decides how to fix errors, not a hardcoded retry loop.</code></pre></div>
+
+<div class="step-meta"><span><span class="badge badge-orange">LLM Call + 1-5 Tool Calls</span></span><span>~12-30K tokens</span><span>~5-80s</span></div><p style="font-size:0.82rem; color:var(--red); margin:8px 0 0;"><strong>Without it:</strong> No SQL generation at all. This is the heart of the entire system.</p></div>
+<div class="flow-arrow">&#9660;</div>
+
+<div class="step-card s5"><span class="step-num">STEP 5 &mdash; LLM AGENT (OPTIONAL)</span><h3 style="color:var(--yellow);">SummaryAgent</h3>
+<p>Generates a natural language summary of query results. Runs at temperature 0.5 for fluent, human-readable language. <strong>Skipped</strong> if the SQL agent already produced a good summary.</p>
+
+<h4>What Exactly is Sent to the SummaryAgent</h4>
+<div class="card" style="margin:10px 0;"><pre><code>The agent receives ONE message containing 3 parts:
+
+Question: Show me approved leave requests by type for 2025
+SQL: SELECT hr.type, COUNT(*) FROM hr_requests hr WHERE hr.status = 'approved'...
+Results: [
+  {"Leave Type": "vacation-leave", "Total Requests": 53, "Total Days": "3676.0"},
+  {"Leave Type": "sick-leave", "Total Requests": 24, "Total Days": "37.0"},
+  {"Leave Type": "unpaid-leave", "Total Requests": 5, "Total Days": "134.0"},
+  {"Leave Type": "special-leave", "Total Requests": 1, "Total Days": "26.0"},
+  {"Leave Type": "emergency-leave", "Total Requests": 1, "Total Days": "6.0"}
+]
+
+(Results limited to first 10 rows to avoid token overflow)
+
+Agent outputs:
+  "In 2025, there are 84 total approved leave requests across 5 types.
+   Vacation leave dominates with 53 requests (3,676 days), followed by
+   sick leave with 24 requests (37 days)."</code></pre></div>
+
+<h4>When is it Skipped?</h4>
+<table>
+  <thead><tr><th>Condition</th><th>Action</th><th>Tokens</th></tr></thead>
+  <tbody>
+    <tr><td>SQL agent already wrote a summary in its response</td><td><strong>Skipped</strong> &mdash; uses SQL agent's summary</td><td>0</td></tr>
+    <tr><td>No query results (SQL failed or conversational)</td><td><strong>Skipped</strong> &mdash; uses "No results found"</td><td>0</td></tr>
+    <tr><td>Results exist but no summary yet</td><td><strong>Runs</strong> &mdash; generates natural language summary</td><td>~1-4K</td></tr>
+  </tbody>
+</table>
+
+<div class="step-meta"><span><span class="badge badge-blue">LLM Call (often skipped)</span></span><span>0-4K tokens</span><span>0-16s</span></div><p style="font-size:0.82rem; margin:8px 0 0; color:var(--muted);"><strong>Without it:</strong> Still works fine &mdash; the SQL agent's inline summary is used. This agent improves the natural language quality, especially for Arabic responses.</p></div>
+<div class="flow-arrow">&#9660;</div>
+
+<div class="step-card s6"><span class="step-num">STEP 6 &mdash; OUTPUT FORMATTING</span><h3 style="color:var(--red);">ResultFormatter + ResponseBuilder</h3><p>Formats results into: table preview, CSV export, PDF export, Chart.js data. Detects chart intent from original message.</p><div class="step-meta"><span><span class="badge badge-green">No LLM Call</span></span><span>0 tokens</span><span>~50-200ms</span></div><p style="font-size:0.82rem; margin:8px 0 0; color:var(--muted);"><strong>Without it:</strong> Raw JSON results without tables, CSVs, or charts.</p></div>
+
+<h2 id="s5"><span class="n">5</span> Real Production Examples &amp; Token Analysis</h2>
+<p>Data from 4 real requests to our production system:</p>
+<div class="chart-row">
+  <div class="chart-card"><h4>Tokens by Step (per request)</h4><canvas id="chartTokensStep"></canvas></div>
+  <div class="chart-card"><h4>Duration by Step (seconds)</h4><canvas id="chartDuration"></canvas></div>
+</div>
+<div class="chart-row">
+  <div class="chart-card"><h4>Total Tokens per Request</h4><canvas id="chartTotalTokens"></canvas></div>
+  <div class="chart-card"><h4>Total Duration per Request (seconds)</h4><canvas id="chartTotalDuration"></canvas></div>
+</div>
+
+<h3>Request Breakdown</h3>
+<table>
+  <thead><tr><th>Request</th><th>Model</th><th>Lang</th><th>Intent</th><th>Tables</th><th>Tokens</th><th>Duration</th><th>RAG</th></tr></thead>
+  <tbody>
+    <tr><td>Active employees by dept</td><td>Gemini 2.5 Pro</td><td>EN</td><td>sql_query</td><td>6</td><td><strong>26,575</strong></td><td>136.6s</td><td>3</td></tr>
+    <tr><td>عدد الموظفين حسب القسم</td><td>Gemini 2.5 Pro</td><td>AR</td><td>sql_query</td><td>6</td><td><strong>26,855</strong></td><td>119.4s</td><td>3</td></tr>
+    <tr><td>Approved leave by type 2025</td><td>Claude Opus 4.6</td><td>EN</td><td>sql_query</td><td>11</td><td><strong>43,465</strong></td><td>35.1s</td><td>3</td></tr>
+    <tr><td>إجازات معتمدة حسب النوع</td><td>Claude Opus 4.6</td><td>AR</td><td>sql_query</td><td>10</td><td><strong>45,801</strong></td><td>27.5s</td><td>3</td></tr>
+  </tbody>
+</table>
+
+<h3>Where Do Tokens Go?</h3>
+<div class="chart-row"><div class="chart-card" style="grid-column: 1 / -1;"><h4>Token Distribution &mdash; Claude Opus 4.6 (Arabic leave request)</h4><canvas id="chartTokenPie"></canvas></div></div>
+<table>
+  <thead><tr><th>Step</th><th>Tokens</th><th>% of Total</th><th>What consumes tokens</th></tr></thead>
+  <tbody>
+    <tr><td>Intent Classifier</td><td>4,188</td><td>9%</td><td>System prompt + intent definitions + user message</td></tr>
+    <tr><td>Table Selector</td><td>12,533</td><td>27%</td><td>System prompt + table catalog (30+ tables) + user message</td></tr>
+    <tr><td>RAG Retrieval</td><td>0</td><td>0%</td><td>No LLM tokens. Vector math only.</td></tr>
+    <tr><td>SQL Generator</td><td>29,080</td><td>64%</td><td>System prompt + SQL rules + schema DDL + 3 RAG examples + history</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>45,801</strong></td><td>100%</td><td></td></tr>
+  </tbody>
+</table>
+<div class="highlight"><p><strong>Key insight:</strong> RAG itself costs 0 LLM tokens. The 3 retrieved examples add ~3-5K tokens to the SQL generator prompt. So RAG costs ~3-5K tokens but significantly improves accuracy. The SQL generator consumes 64% of all tokens because it receives schema DDL + examples + rules.</p></div>
+
+<h2 id="s6"><span class="n">6</span> Pros &amp; Cons of RAG</h2>
+<div class="pros-cons">
+  <div class="card pros"><h4 style="color:var(--green); margin-top:0;">Pros</h4><ul>
+    <li><strong>No retraining needed</strong> &mdash; add a golden query, it works immediately</li>
+    <li><strong>Schema changes safe</strong> &mdash; DDL is always in the prompt, RAG supplements it</li>
+    <li><strong>Bilingual</strong> &mdash; each query embedded in EN + AR, works in either language</li>
+    <li><strong>Transparent</strong> &mdash; you can see which examples were retrieved in debug output</li>
+    <li><strong>Cheap to maintain</strong> &mdash; no training costs, just add examples via artisan command</li>
+    <li><strong>Proven technique</strong> &mdash; Uber and LinkedIn confirmed #1 accuracy technique</li>
+    <li><strong>Model-agnostic</strong> &mdash; switch LLMs without retraining</li>
+    <li><strong>Handles edge cases</strong> &mdash; add 1 example for a new pattern, instantly covered</li>
+  </ul></div>
+  <div class="card cons"><h4 style="color:var(--red); margin-top:0;">Cons</h4><ul>
+    <li><strong>+3-5K tokens per request</strong> &mdash; few-shot examples consume prompt space</li>
+    <li><strong>Retrieval quality varies</strong> &mdash; weak embedding model = irrelevant examples</li>
+    <li><strong>Cold start</strong> &mdash; needs curated golden queries (we have 486 but building takes effort)</li>
+    <li><strong>Not self-learning</strong> &mdash; does not auto-improve from production (manual curation)</li>
+    <li><strong>Latency</strong> &mdash; adds ~150-5000ms for embedding + search</li>
+    <li><strong>Storage</strong> &mdash; vector files on disk (~50MB for 972 vectors)</li>
+    <li><strong>Garbage in, garbage out</strong> &mdash; wrong golden SQL teaches bad patterns</li>
+    <li><strong>Basic RAG only</strong> &mdash; no re-ranking, no relevance scoring, no multi-hop</li>
+  </ul></div>
+</div>
+
+<h2 id="s7"><span class="n">7</span> RAG vs Fine-Tuning</h2>
+<table>
+  <thead><tr><th></th><th>RAG (current)</th><th>Fine-Tuning (future)</th><th>Both (recommended)</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Tokens/request</strong></td><td>+3-5K (examples in prompt)</td><td>+0 (patterns learned)</td><td>+1-2K (fewer examples)</td></tr>
+    <tr><td><strong>Accuracy (known)</strong></td><td>~80%</td><td>~95%</td><td>~97%</td></tr>
+    <tr><td><strong>Accuracy (new)</strong></td><td>Good (finds similar)</td><td>Poor (never seen)</td><td>Best of both</td></tr>
+    <tr><td><strong>Schema changes</strong></td><td>Works immediately</td><td>Needs retraining</td><td>RAG covers the gap</td></tr>
+    <tr><td><strong>Setup cost</strong></td><td>Low</td><td>$50-500/run</td><td>High</td></tr>
+    <tr><td><strong>Maintenance</strong></td><td>Add examples</td><td>Retrain periodically</td><td>Both</td></tr>
+    <tr><td><strong>Model flexibility</strong></td><td>Any LLM</td><td>Locked to one</td><td>Fine-tuned + RAG fallback</td></tr>
+  </tbody>
+</table>
+<div class="highlight"><p><strong>Our plan:</strong> Currently using RAG (working now). Next: fine-tune the SQL generator on 486 golden queries, keep RAG as fallback for edge cases and new patterns. Best accuracy + lower token costs.</p></div>
+
+<div style="text-align:center; padding:50px 0 30px; color:var(--muted); font-size: 0.8rem;">&mdash; End of Brief &mdash;<br>Idaratech Engineering &bull; AiAssistant Module</div>
+</div>
+
+<script>
+  Chart.defaults.color = '#8b949e';
+  Chart.defaults.borderColor = '#30363d';
+  Chart.defaults.font.family = "-apple-system, sans-serif";
+  const C = { blue: '#58a6ff', green: '#3fb950', purple: '#d2a8ff', orange: '#f0883e', red: '#f85149', yellow: '#d29922', blueA: 'rgba(88,166,255,0.25)', greenA: 'rgba(63,185,80,0.25)', purpleA: 'rgba(210,168,255,0.25)', orangeA: 'rgba(240,136,62,0.25)', yellowA: 'rgba(210,153,34,0.25)' };
+
+  new Chart(document.getElementById('chartTokensStep'), {
+    type: 'bar',
+    data: {
+      labels: ['EN (Gemini)', 'AR (Gemini)', 'EN (Opus)', 'AR (Opus)'],
+      datasets: [
+        { label: 'Intent', data: [0, 3876, 2310, 4188], backgroundColor: C.blueA, borderColor: C.blue, borderWidth: 1 },
+        { label: 'Table Select', data: [6531, 6689, 11649, 12533], backgroundColor: C.greenA, borderColor: C.green, borderWidth: 1 },
+        { label: 'RAG', data: [0, 0, 0, 0], backgroundColor: C.purpleA, borderColor: C.purple, borderWidth: 1 },
+        { label: 'SQL Generate', data: [20044, 12078, 29506, 29080], backgroundColor: C.orangeA, borderColor: C.orange, borderWidth: 1 },
+        { label: 'Summary', data: [0, 4212, 0, 0], backgroundColor: C.yellowA, borderColor: C.yellow, borderWidth: 1 }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 }}}, scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Tokens' }}}}
+  });
+
+  new Chart(document.getElementById('chartDuration'), {
+    type: 'bar',
+    data: {
+      labels: ['EN (Gemini)', 'AR (Gemini)', 'EN (Opus)', 'AR (Opus)'],
+      datasets: [
+        { label: 'Intent', data: [10.0, 20.8, 2.7, 3.1], backgroundColor: C.blueA, borderColor: C.blue, borderWidth: 1 },
+        { label: 'Table Select', data: [44.8, 30.1, 10.3, 8.9], backgroundColor: C.greenA, borderColor: C.green, borderWidth: 1 },
+        { label: 'RAG', data: [0.2, 5.2, 5.3, 0.5], backgroundColor: C.purpleA, borderColor: C.purple, borderWidth: 1 },
+        { label: 'SQL Generate', data: [81.5, 47.1, 16.7, 14.8], backgroundColor: C.orangeA, borderColor: C.orange, borderWidth: 1 },
+        { label: 'Summary', data: [0, 16.1, 0, 0], backgroundColor: C.yellowA, borderColor: C.yellow, borderWidth: 1 }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 }}}, scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Seconds' }}}}
+  });
+
+  new Chart(document.getElementById('chartTotalTokens'), {
+    type: 'bar',
+    data: {
+      labels: ['EN (Gemini)', 'AR (Gemini)', 'EN (Opus)', 'AR (Opus)'],
+      datasets: [{ label: 'Total Tokens', data: [26575, 26855, 43465, 45801],
+        backgroundColor: [C.orangeA, C.orangeA, C.purpleA, C.purpleA],
+        borderColor: [C.orange, C.orange, C.purple, C.purple], borderWidth: 2, borderRadius: 6 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false }}, scales: { y: { beginAtZero: true, title: { display: true, text: 'Tokens' }}}}
+  });
+
+  new Chart(document.getElementById('chartTotalDuration'), {
+    type: 'bar',
+    data: {
+      labels: ['EN (Gemini)', 'AR (Gemini)', 'EN (Opus)', 'AR (Opus)'],
+      datasets: [{ label: 'Seconds', data: [136.6, 119.4, 35.1, 27.5],
+        backgroundColor: [C.orangeA, C.orangeA, C.purpleA, C.purpleA],
+        borderColor: [C.orange, C.orange, C.purple, C.purple], borderWidth: 2, borderRadius: 6 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false }}, scales: { y: { beginAtZero: true, title: { display: true, text: 'Seconds' }}}}
+  });
+
+  new Chart(document.getElementById('chartTokenPie'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Intent (9%)', 'Table Select (27%)', 'RAG (0%)', 'SQL Generate (64%)'],
+      datasets: [{ data: [4188, 12533, 1, 29080], backgroundColor: [C.blue, C.green, C.purple, C.orange], borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 16 }}}}
+  });
+</script>
+</body>
+</html>
