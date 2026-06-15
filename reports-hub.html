@@ -219,6 +219,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- ========== ACTUAL IMPLEMENTATION ========== -->
+<div class="cards-section">
+  <div class="section-label" style="color:#22C55E">Actual Implementation (1)</div>
+  <div class="section-desc">How the system is <strong>actually built today</strong> &mdash; the live AI&nbsp;Engine + HR-MCP + Backend-v2 architecture, verified against the running code (the planning &amp; research docs below preceded it).</div>
+
+  <div class="cards-grid">
+
+    <!-- System Architecture (as-built) -->
+    <a href="SYSTEM-ARCHITECTURE.html" class="report-card card-c1">
+      <div class="card-num">&#9889;</div>
+      <div class="card-icon">&#127959;</div>
+      <div class="card-badge">As-Built &middot; Verified vs Code</div>
+      <div class="card-title">System Architecture &mdash; Request Lifecycle</div>
+      <div class="card-desc">The three real services and how they talk: AI&nbsp;Engine (text&rarr;SQL) &rarr; HR-MCP (tool boundary) &rarr; Backend-v2 (executor &amp; data owner). Covers the request lifecycle, the LangGraph pipeline, ports &amp; runtime, and the auth matrix &mdash; including the IdentityCore validation gate.</div>
+      <div class="card-meta">
+        <div class="card-meta-item">&#128279; 3 Services</div>
+        <div class="card-meta-item">&#128272; 2 Auth Gates</div>
+        <div class="card-meta-item">&#9881; MCP-only boundary</div>
+      </div>
+      <div class="card-link">Open docs <span class="card-link-arrow">&rarr;</span></div>
+    </a>
+
+  </div>
+</div>
+
 <!-- ========== DOCUMENTATION & ARCHITECTURE ========== -->
 <div class="cards-section">
   <div class="section-label" style="color:#14B8A6">Documentation &amp; Architecture (6)</div>

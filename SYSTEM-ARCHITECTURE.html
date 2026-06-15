@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idaratech AI Reports — System Architecture &amp; Request Lifecycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spline+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1014; --bg-2:#12161c; --panel:#161b22; --panel-2:#1b2129;
+    --ink:#e6e8eb; --ink-dim:#9aa3ad; --ink-faint:#646d78; --line:#262d36;
+    --amber:#e0a85c; --amber-bright:#f3c178; --teal:#5fb8a8; --red:#d9776a;
+    --green:#76b58a; --blue:#7aa2d6; --violet:#a98fd6;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --sans:'Spline Sans',system-ui,sans-serif; --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(900px 500px at 12% -5%, rgba(122,162,214,.08), transparent 60%),radial-gradient(700px 600px at 95% 5%, rgba(95,184,168,.06), transparent 60%);}
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 28px}
+
+  header.hero{padding:72px 0 36px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;color:var(--blue);margin-bottom:22px;display:flex;align-items:center;gap:14px}
+  .kicker::before{content:"";width:42px;height:1px;background:var(--blue);display:inline-block}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.06;letter-spacing:-.02em;margin-bottom:18px}
+  h1 em{font-style:italic;color:var(--amber-bright);font-weight:500}
+  .lede{color:var(--ink-dim);max-width:880px;font-size:1.05rem}
+  .lede code{font-family:var(--mono);font-size:.85em;color:var(--teal)}
+  .meta-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--ink-dim);background:var(--panel)}
+  .chip b{color:var(--amber-bright);font-weight:500}
+
+  nav.toc{display:flex;flex-wrap:wrap;gap:8px;padding:18px 0;border-bottom:1px solid var(--line)}
+  nav.toc a{font-family:var(--mono);font-size:.74rem;color:var(--ink-dim);text-decoration:none;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+  nav.toc a:hover{color:var(--amber-bright);border-color:var(--amber)}
+
+  section{padding:52px 0;border-bottom:1px solid var(--line)}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.9rem;letter-spacing:-.01em;margin-bottom:8px}
+  h2 .num{font-family:var(--mono);font-size:.78rem;color:var(--amber);vertical-align:middle;margin-right:12px;letter-spacing:.2em}
+  .sub{color:var(--ink-dim);max-width:860px;margin-bottom:26px}
+  .sub code,.note code,td code,li code{font-family:var(--mono);font-size:.84em;color:var(--teal)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:24px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .card h3{font-size:1.02rem;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .card p{color:var(--ink-dim);font-size:.9rem}
+  .card .tech{font-family:var(--mono);font-size:.68rem;color:var(--ink-faint);margin-top:12px;line-height:1.9}
+
+  .diagram{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin:20px 0;overflow-x:auto}
+  .diagram .mermaid{display:flex;justify-content:center}
+  .caption{font-family:var(--mono);font-size:.7rem;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;margin-top:10px;text-align:center}
+
+  .note{background:var(--panel-2);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:14px 18px;margin:18px 0;color:var(--ink-dim);font-size:.92rem}
+  .note b{color:var(--amber-bright);font-weight:600}
+  .note.teal{border-left-color:var(--teal)} .note.teal b{color:var(--teal)}
+  .note.red{border-left-color:var(--red)} .note.red b{color:var(--red)}
+
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.9rem}
+  th{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink-dim);vertical-align:top}
+  td:first-child{color:var(--ink)}
+  tr:hover td{background:rgba(255,255,255,.015)}
+
+  .glossary dt{font-weight:600;color:var(--amber-bright);margin-top:16px;font-size:.95rem}
+  .glossary dd{color:var(--ink-dim);font-size:.92rem;margin-left:0}
+
+  footer{padding:40px 0 70px;color:var(--ink-faint);font-size:.82rem;font-family:var(--mono)}
+  @media (max-width:720px){ .wrap{padding:0 16px} header.hero{padding:48px 0 28px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">System Reference · AI Reports</div>
+  <h1>Three services, one question:<br><em>how do they talk to each other?</em></h1>
+  <p class="lede">
+    The onboarding map for the AI Reports feature: <b>AI&nbsp;Engine</b> (the conversational text→SQL brain),
+    <b>HR-MCP</b> (the tool boundary), and <b>Backend-v2</b> (the executor that owns the tenant data and produces the files).
+    Every diagram on this page is generated from the code as of the date below — service names, headers, thresholds and
+    endpoints are the real ones.
+  </p>
+  <div class="meta-chips">
+    <span class="chip">scope <b>service-to-service + request lifecycle</b></span>
+    <span class="chip">source <b>verified against code</b></span>
+    <span class="chip">compiled <b>2026-06-10</b></span>
+    <span class="chip">engine internals → <b>ai-engine-flow.html</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#cast">0 · The cast</a>
+  <a href="#map">1 · System map</a>
+  <a href="#seq-life">2 · Request lifecycle (main path)</a>
+  <a href="#pipeline">3 · Inside the engine</a>
+  <a href="#runtime">4 · Ports &amp; runtime</a>
+  <a href="#auth">5 · Auth matrix</a>
+</nav>
+
+<!-- ============================ 0 · CAST ============================ -->
+<section id="cast">
+  <h2><span class="num">00</span>The cast</h2>
+  <p class="sub">Three services, each with its own data stores. The golden rule of the whole design:
+  <b>the engine never touches a tenant database</b> — it generates SQL and sends identity; the owning service (v2) validates, scopes, and executes.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h3><span class="dot" style="background:var(--blue)"></span>AI Engine</h3>
+      <p>Conversational layer (AR/EN). Classifies intent, generates SQL with an LLM, asks v2 to run it, summarizes the result, assembles the answer blocks (text / table / chart / file / redirect).</p>
+      <div class="tech">Python 3.12 · FastAPI · LangGraph · :8099<br>
+      owns → PostgreSQL+pgvector :5433 (conversations, messages, audit, RAG vectors) · Redis :6380 (cache/quota)<br>
+      external → LLM via OpenRouter→Gemini (testing only; in-KSA self-hosted planned) · embeddings local Ollama :11434</div>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--violet)"></span>HR-MCP</h3>
+      <p>Thin MCP server — the standard tool boundary between the engine and HR. Exposes 5 read-only tools and forwards each call to v2's internal API with its own service credentials. Stateless; no database.</p>
+      <div class="tech">Python · FastMCP (mcp 1.27) · Streamable HTTP · :9100<br>
+      tools → get_schema · run_query · get_column_values · run_report · report_status<br>
+      auth in → HS256 JWT (aud=hr-mcp) · auth out → X-Api-Key + identity headers</div>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--teal)"></span>Backend-v2</h3>
+      <p>The executor and data owner. Validates AI SQL through a multi-layer safety pipeline, executes read-only against the right tenant DB, builds the report files, signs the download links, queues the big jobs.</p>
+      <div class="tech">PHP 8.3 · Laravel 11 (AiChatAssistance + ReportsManagement) · :8004<br>
+      owns → MySQL central + one DB per tenant (stancl/tenancy) · GCS (report files) · Redis queue (reports_v2)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 1 · MAP ============================ -->
+<section id="map">
+  <h2><span class="num">01</span>System map — who talks to whom</h2>
+  <p class="sub">Every arrow is labeled with its transport and credential. The engine never calls Backend-v2
+  directly — it reaches HR <b>only through HR-MCP</b> (the <code>QueryPort</code> seam, <code>QUERY_PORT=mcp</code>),
+  and HR-MCP forwards to v2's internal API. This is the <b>only</b> production path — there is no direct engine→v2 transport.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  classDef svc fill:#1b2129,stroke:#7aa2d6,stroke-width:1.5px,color:#e6e8eb
+  classDef store fill:#12161c,stroke:#262d36,color:#9aa3ad
+  classDef ext fill:#241b1b,stroke:#d9776a,color:#e6e8eb
+  classDef edge fill:#161b22,stroke:#5fb8a8,color:#e6e8eb
+
+  FE["Client / FE (chat UI)"]:::edge
+
+  subgraph ENGINE["AI ENGINE  ·  FastAPI :8099"]
+    direction TB
+    ASK["POST /api/v1/chat/ask<br/>GET /api/v1/quota · GET /health"]:::svc
+    PG[("PostgreSQL + pgvector :5433<br/>conversations · messages · audit · RAG")]:::store
+    RDS[("Redis :6380<br/>schema cache · quota")]:::store
+    OLL[("Ollama :11434<br/>bge-m3 embeddings · local")]:::store
+  end
+
+  LLM["LLM — OpenRouter → Gemini<br/>(TESTING ONLY · in-KSA self-hosted planned)"]:::ext
+
+  subgraph MCP["HR-MCP  ·  FastMCP :9100"]
+    TOOLS["5 read-only tools<br/>get_schema · run_query · get_column_values<br/>run_report · report_status"]:::svc
+  end
+
+  subgraph V2["BACKEND-V2  ·  Laravel :8004"]
+    direction TB
+    API["/api/internal/ai/*<br/>schema · query · report · report/{job} · column-values"]:::svc
+    PIPE["SQL safety pipeline<br/>validate → scope-inject → EXPLAIN → execute*"]:::svc
+    REP["Report engine (ReportsManagement)<br/>count → sync stream / async queue"]:::svc
+    MYSQL[("MySQL<br/>central + DB-per-tenant")]:::store
+    GCS[("GCS<br/>report files · 24h signed links")]:::store
+    Q[("Redis queue<br/>reports_v2 jobs")]:::store
+  end
+
+  FE -- "HTTPS · Bearer token +<br/>X-Workspace · X-User-Id · X-Locale" --> ASK
+  ASK -- "chat completions API<br/>(question · schema · preview rows)" --> LLM
+  ASK --- PG
+  ASK --- RDS
+  ASK --- OLL
+  ASK -- "MCP Streamable HTTP · JSON-RPC<br/>short-lived HS256 JWT (aud=hr-mcp,<br/>claims: workspace + user_id)" --> TOOLS
+  TOOLS -- "HTTP · X-Api-Key (service key)<br/>+ X-Workspace + identity headers" --> API
+  API --> PIPE --> MYSQL
+  API --> REP
+  REP --- GCS
+  REP --- Q
+    </pre>
+    <div class="caption">container map · *execute is skipped in report mode (EXPLAIN gate only) — the report engine counts &amp; streams itself</div>
+  </div>
+
+  <div class="note red"><b>Data-residency note:</b> the LLM arrow is the only line leaving our infrastructure. While testing on
+  OpenRouter→Gemini, the question, schema context and the ≤10 preview rows cross it. Switching to the in-KSA self-hosted model is
+  config-only (the <code>LLMProvider</code> seam) and removes that egress entirely.</div>
+</section>
+
+<!-- ===================== 2 · UNIFIED REQUEST LIFECYCLE ===================== -->
+<section id="seq-life">
+  <h2><span class="num">02</span>Request lifecycle — the main path</h2>
+  <p class="sub">One question, the happy path. The engine understands the question, asks <b>HR-MCP</b> what it can
+  query, writes the SQL, runs it through HR-MCP → <b>backend-v2</b> (which executes read-only on the tenant DB),
+  then summarizes the answer. The key rule: the engine <b>never touches the tenant DB directly</b> — every data
+  call goes through HR-MCP. (Edge cases — injection refusal, out-of-scope chat, the SQL self-correction retry, and
+  the sync-vs-async report split — are left out here; they live in the pipeline diagram in section 03.)</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Client / FE
+  participant E as AI Engine
+  participant L as LLM
+  participant M as HR-MCP
+  participant V as Backend-v2
+  participant T as Tenant DB
+
+  FE->>E: POST /chat/ask — question + identity headers
+  E->>L: understand the question (intent · which tables)
+  E->>M: get_schema — "what can I query?"
+  M->>V: fetch schema
+  V-->>M: tables + columns
+  M-->>E: schema
+  E->>L: write the SQL
+  E->>M: run the SQL (run_query / run_report)
+  M->>V: forward (service key + user token)
+  V->>T: execute · read-only · tenant-scoped
+  T-->>V: rows
+  V-->>M: result + small preview
+  M-->>E: result
+  E->>L: summarize the result
+  E-->>FE: reply + table / chart / download link
+    </pre>
+    <div class="caption">the engine reaches v2 <b>only</b> through HR-MCP · v2 executes on the tenant DB and returns rows + a preview · the engine summarizes and replies</div>
+  </div>
+</section>
+
+<!-- ============================ 5 · PIPELINE ============================ -->
+<section id="pipeline">
+  <h2><span class="num">03</span>Inside the engine — the LangGraph pipeline</h2>
+  <p class="sub">What happens between “question in” and “blocks out”. Deterministic guards run before any LLM call;
+  refusals are hardcoded EN/AR text (model-agnostic — nothing to jailbreak). The full node-by-node story lives in
+  <code>ai-engine-flow.html</code>.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  classDef guard fill:#241b1b,stroke:#d9776a,color:#e6e8eb
+  classDef llm fill:#1b2129,stroke:#7aa2d6,color:#e6e8eb
+  classDef det fill:#161b22,stroke:#5fb8a8,color:#e6e8eb
+  classDef out fill:#1c2419,stroke:#76b58a,color:#e6e8eb
+
+  Q([user question]) --> G["guard_input<br/>injection screen · regex EN+AR · no LLM"]:::guard
+  G -- blocked --> R1["fixed refusal → END"]:::guard
+  G -- ok --> I["classify_intent (LLM)"]:::llm
+
+  I -- out_of_scope<br/>politics · sexual · poems ·<br/>general knowledge --> R2["refuse_out_of_scope<br/>fixed EN/AR refusal · no LLM → END"]:::guard
+  I -- conversational /<br/>clarification --> C["conversational reply (LLM)<br/>scope-hardened prompt → END"]:::llm
+  I -- report_query /<br/>chart_request --> EQ["enhance_question (LLM)"]:::llm
+
+  EQ --> ST["select_tables (LLM, cheap menu)"]:::llm
+  ST --> RAG["retrieve_examples<br/>golden queries · pgvector RAG"]:::det
+  RAG --> GS["generate_sql (LLM)<br/>schema + semantics + few-shot"]:::llm
+  GS --> PRE["static pre-check (sqlglot)<br/>SELECT-only · allowlist · blocked columns"]:::det
+  PRE --> EX{execute node}
+
+  EX -- chart request --> IQ["run_query via QueryPort<br/>rows inline ≤1000"]:::det
+  EX -- everything else --> CR["create_report via QueryPort<br/>preview + handle only"]:::det
+  EX -- "sql_rejected (retryable)" --> GS
+
+  IQ --> SUM
+  CR --> SUM["summarize (LLM over ≤10 preview rows)"]:::llm
+  SUM --> GR["grounding check · deterministic<br/>every number traces to data (AR/EN digits)"]:::det
+  GR --> SAFE["reply safety + brevity rails"]:::det
+  SAFE --> B["assemble blocks<br/>text · table · chart · file · redirect<br/>+ metadata.report_type"]:::out
+  B --> END([AskResponse → FE])
+    </pre>
+    <div class="caption">engine pipeline · the sql_rejected loop is bounded (sql_max_retries = 3) · empty results return a friendly localized message</div>
+  </div>
+</section>
+
+<!-- ============================ 6 · RUNTIME ============================ -->
+<section id="runtime">
+  <h2><span class="num">04</span>Ports &amp; runtime — where everything lives</h2>
+  <p class="sub">Dev topology on one machine. The three Laravel/Python services are independent repos; v2 runs in the
+  dev-env docker stack, the engine and MCP run as local processes with their own docker-compose for data stores.</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Port</th><th>Runs as</th><th>Repo / config</th></tr></thead>
+    <tbody>
+      <tr><td>AI Engine (FastAPI)</td><td><code>:8099</code></td><td>local <code>uvicorn app.main:app</code></td><td><code>idaratech-ai-engine</code> · <code>.env</code></td></tr>
+      <tr><td>Engine PostgreSQL + pgvector</td><td><code>:5433</code></td><td>docker (engine compose, pg17)</td><td><code>idaratech-ai-engine/docker-compose.yml</code></td></tr>
+      <tr><td>Engine Redis</td><td><code>:6380</code></td><td>docker (engine compose)</td><td>cache · quota</td></tr>
+      <tr><td>Embeddings (Ollama, bge-m3)</td><td><code>:11434</code></td><td>local — vectors never leave</td><td><code>EMBEDDING_BASE_URL</code></td></tr>
+      <tr><td>Langfuse (LLM tracing)</td><td><code>:3000</code></td><td>self-hosted · off unless keys set</td><td><code>LANGFUSE_*</code></td></tr>
+      <tr><td>IdentityCore (token validation · 1st gate)</td><td><code>:9090</code> gRPC</td><td>dev-env docker · <b>optional</b> (off unless enabled)</td><td><code>IDENTITY_VALIDATION_ENABLED</code> · <code>IDENTITY_GRPC_HOST</code></td></tr>
+      <tr><td>HR-MCP (FastMCP)</td><td><code>:9100</code></td><td>local <code>uv run hr-mcp</code></td><td><code>idaratech-hr-mcp</code> · <code>.env</code></td></tr>
+      <tr><td>Backend-v2 (Laravel)</td><td><code>:8004</code></td><td>docker (dev-env compose)</td><td><code>backend-v2</code> · AiChatAssistance + ReportsManagement</td></tr>
+      <tr><td>MySQL (central + tenants)</td><td><code>:3306</code></td><td>docker (dev-env compose)</td><td>one DB per tenant (stancl)</td></tr>
+      <tr><td>LLM (testing)</td><td>—</td><td><b>external</b>: OpenRouter → Gemini</td><td><code>LLM_BASE_URL</code> / <code>LLM_MODEL*</code> — swap to in-KSA is config-only</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note"><b>Transport switch:</b> <code>QUERY_PORT</code> in the engine’s <code>.env</code> selects the boundary —
+  <code>mcp</code> (the only production path: engine → HR-MCP → v2) or <code>stub</code> (canned data, no HR needed — tests only).
+  There is no direct engine→v2 transport.</div>
+</section>
+
+<!-- ============================ 7 · AUTH ============================ -->
+<section id="auth">
+  <h2><span class="num">05</span>Auth matrix — what credential crosses each hop</h2>
+  <p class="sub">The chain has <b>two identity gates</b>. The engine's <b>first gate</b> (optional, <code>IDENTITY_VALIDATION_ENABLED</code>)
+  validates the end-user token against <b>IdentityCore</b> before any work runs; <b>Backend-v2</b> is the authoritative
+  <b>second gate</b> downstream. Three distinct credentials travel the chain — keep the <em>user</em> token separate from the
+  two <em>service</em> credentials.</p>
+  <table>
+    <thead><tr><th>Hop</th><th>Credential</th><th>Carries / proves</th></tr></thead>
+    <tbody>
+      <tr><td>FE → Engine <code>/chat/ask</code></td><td>Bearer token + <code>X-Workspace</code> + <code>X-User-Id</code> (+ <code>X-Locale</code>)</td><td>End-user identity &amp; tenant; missing headers → 401</td></tr>
+      <tr><td>Engine → IdentityCore <b>(1st gate · optional)</b></td><td>gRPC <code>IdentityService.WhoAmI</code> — Bearer + <code>x-workspace</code> metadata</td><td>Validates the token is active before the pipeline runs. Invalid → 401; IdentityCore unreachable → 503 (fail-closed). OFF by default; positive results cached (SHA-256 of token+workspace, 300s)</td></tr>
+      <tr><td>Engine → HR-MCP</td><td>Short-lived HS256 JWT, <code>aud=hr-mcp</code></td><td>Claims: <code>workspace</code> + <code>user_id</code> — proves the <em>engine</em> to HR-MCP; the user’s own token is relayed alongside via <code>X-Forwarded-Authorization</code> (never the engine’s credential)</td></tr>
+      <tr><td>HR-MCP → v2 <code>/internal/ai/*</code> <b>(2nd gate)</b></td><td><code>X-Api-Key</code> (HR-MCP’s own service key) + <code>X-Workspace</code> + relayed user token</td><td>Service-to-service trust; v2 resolves tenant from workspace and is the <b>authoritative</b> validator/authorizer</td></tr>
+      <tr><td>v2 → Tenant MySQL</td><td>Read-only transaction · scoped SQL</td><td>Row-level scope injected (team/user/access-scope) · 5s timeout · blocked-column denylist</td></tr>
+      <tr><td>FE → report file</td><td>24h signed GCS URL</td><td>Re-minted on every status call — never a long-lived link</td></tr>
+    </tbody>
+  </table>
+  <div class="note teal"><b>Three credentials — don’t conflate them:</b> the <b>end-user token</b> (Ory/IdentityCore) says <em>who the user is</em> — validated optionally at the engine, authoritatively at v2. The <b>engine→HR-MCP JWT</b> and the <b>HR-MCP→v2 <code>X-Api-Key</code></b> are <em>service</em> credentials that prove each hop, not the user.</div>
+</section>
+
+
+<footer>
+  Idaratech · AI Reports — system architecture reference · compiled 2026-06-10 from
+  idaratech-ai-engine · idaratech-hr-mcp · backend-v2 (AiChatAssistance / ReportsManagement) ·
+  diagrams: Mermaid.js · companion docs: ai-engine-flow.html (engine internals) · guardrails-reference.html · authorization-reference.html
+</footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.min.js"
+        integrity="sha384-LlKSgo4Eo5GuF/ZrstLti44dE+GC5XAJ7TSu0Nw9Q3vIZF2QMnkRcK7BUoLabYLF"
+        crossorigin="anonymous"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    look: 'handDrawn',
+    themeVariables: {
+      darkMode: true,
+      background: '#161b22',
+      primaryColor: '#1b2129',
+      primaryTextColor: '#e6e8eb',
+      primaryBorderColor: '#7aa2d6',
+      lineColor: '#9aa3ad',
+      secondaryColor: '#12161c',
+      tertiaryColor: '#161b22',
+      fontFamily: 'Spline Sans, system-ui, sans-serif',
+      fontSize: '14px',
+      noteBkgColor: '#241f15',
+      noteTextColor: '#e0a85c',
+      noteBorderColor: '#e0a85c',
+      actorBkg: '#1b2129',
+      actorBorder: '#7aa2d6',
+      actorTextColor: '#e6e8eb',
+      signalColor: '#9aa3ad',
+      signalTextColor: '#c7cdd4',
+      labelBoxBkgColor: '#161b22',
+      labelBoxBorderColor: '#5fb8a8',
+      labelTextColor: '#5fb8a8',
+      loopTextColor: '#5fb8a8',
+      sequenceNumberColor: '#0d1014',
+      clusterBkg: '#12161c',
+      clusterBorder: '#262d36',
+      edgeLabelBackground: '#12161c'
+    },
+    sequence: { actorMargin: 38, messageMargin: 30, mirrorActors: false, useMaxWidth: true },
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+  });
+</script>
+</body>
+</html>
