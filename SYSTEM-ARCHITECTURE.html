@@ -82,13 +82,15 @@
   <p class="lede">
     The onboarding map for the AI Reports feature: <b>AI&nbsp;Engine</b> (the conversational text→SQL brain),
     <b>HR-MCP</b> (the tool boundary), and <b>Backend-v2</b> (the executor that owns the tenant data and produces the files).
+    The engine answers in <b>two modes</b> — it writes a custom SQL query (<a href="#seq-life" style="color:var(--amber-bright)">Flow&nbsp;A</a>) or routes you to a prebuilt report (<a href="#flow-redirect" style="color:var(--amber-bright)">Flow&nbsp;B</a>).
     Every diagram on this page is generated from the code as of the date below — service names, headers, thresholds and
     endpoints are the real ones.
   </p>
   <div class="meta-chips">
     <span class="chip">scope <b>service-to-service + request lifecycle</b></span>
     <span class="chip">source <b>verified against code</b></span>
-    <span class="chip">compiled <b>2026-06-10</b></span>
+    <span class="chip">compiled <b>2026-06-10</b> · rev <b>2026-06-30</b></span>
+    <span class="chip">flows <b>A · text→SQL</b> + <b>B · redirect</b></span>
     <span class="chip">engine internals → <b>ai-engine-flow.html</b></span>
   </div>
 </header>
@@ -96,10 +98,11 @@
 <nav class="toc">
   <a href="#cast">0 · The cast</a>
   <a href="#map">1 · System map</a>
-  <a href="#seq-life">2 · Request lifecycle (main path)</a>
-  <a href="#pipeline">3 · Inside the engine</a>
-  <a href="#runtime">4 · Ports &amp; runtime</a>
-  <a href="#auth">5 · Auth matrix</a>
+  <a href="#seq-life">2 · Flow A — text→SQL</a>
+  <a href="#flow-redirect">3 · Flow B — redirect / companion</a>
+  <a href="#pipeline">4 · Inside the engine</a>
+  <a href="#runtime">5 · Ports &amp; runtime</a>
+  <a href="#auth">6 · Auth matrix</a>
 </nav>
 
 <!-- ============================ 0 · CAST ============================ -->
@@ -120,7 +123,7 @@
       <h3><span class="dot" style="background:var(--violet)"></span>HR-MCP</h3>
       <p>Thin MCP server — the standard tool boundary between the engine and HR. Exposes 5 read-only tools and forwards each call to v2's internal API with its own service credentials. Stateless; no database.</p>
       <div class="tech">Python · FastMCP (mcp 1.27) · Streamable HTTP · :9100<br>
-      tools → get_schema · run_query · get_column_values · run_report · report_status<br>
+      tools → get_schema · run_query · run_report · report_status · get_report_catalog<br>
       auth in → HS256 JWT (aud=hr-mcp) · auth out → X-Api-Key + identity headers</div>
     </div>
     <div class="card">
@@ -160,12 +163,12 @@ flowchart TB
   LLM["LLM — OpenRouter → Gemini<br/>(TESTING ONLY · in-KSA self-hosted planned)"]:::ext
 
   subgraph MCP["HR-MCP  ·  FastMCP :9100"]
-    TOOLS["5 read-only tools<br/>get_schema · run_query · get_column_values<br/>run_report · report_status"]:::svc
+    TOOLS["5 read-only tools<br/>get_schema · run_query · run_report<br/>report_status · get_report_catalog"]:::svc
   end
 
   subgraph V2["BACKEND-V2  ·  Laravel :8004"]
     direction TB
-    API["/api/internal/ai/*<br/>schema · query · report · report/{job} · column-values"]:::svc
+    API["/api/internal/ai/*<br/>schema · query · report · report/{job}<br/>report-catalog-combined"]:::svc
     PIPE["SQL safety pipeline<br/>validate → scope-inject → EXPLAIN → execute*"]:::svc
     REP["Report engine (ReportsManagement)<br/>count → sync stream / async queue"]:::svc
     MYSQL[("MySQL<br/>central + DB-per-tenant")]:::store
@@ -193,14 +196,15 @@ flowchart TB
   config-only (the <code>LLMProvider</code> seam) and removes that egress entirely.</div>
 </section>
 
-<!-- ===================== 2 · UNIFIED REQUEST LIFECYCLE ===================== -->
+<!-- ===================== 2 · FLOW A — TEXT TO SQL ===================== -->
 <section id="seq-life">
-  <h2><span class="num">02</span>Request lifecycle — the main path</h2>
-  <p class="sub">One question, the happy path. The engine understands the question, asks <b>HR-MCP</b> what it can
-  query, writes the SQL, runs it through HR-MCP → <b>backend-v2</b> (which executes read-only on the tenant DB),
-  then summarizes the answer. The key rule: the engine <b>never touches the tenant DB directly</b> — every data
-  call goes through HR-MCP. (Edge cases — injection refusal, out-of-scope chat, the SQL self-correction retry, and
-  the sync-vs-async report split — are left out here; they live in the pipeline diagram in section 03.)</p>
+  <h2><span class="num">02</span>Flow A — text→SQL <span style="color:var(--ink-faint);font-weight:400;font-size:1rem">· the engine writes a custom query</span></h2>
+  <p class="sub">The default answer mode. The engine classifies intent, asks <b>HR-MCP</b> for the schema, retrieves
+  golden-query examples, generates SQL, then runs it through HR-MCP → <b>backend-v2</b> (read-only on the tenant
+  MySQL) and summarizes. The engine <b>never touches the tenant DB directly</b> — every data call goes through
+  HR-MCP. This path is taken when no prebuilt report fits (<code>match_report = NONE</code>), or for
+  <code>chart_request</code> / <code>prefer_custom</code> turns — the report-redirect cases are
+  <a href="#flow-redirect" style="color:var(--amber)">Flow&nbsp;B</a>.</p>
 
   <div class="diagram">
     <pre class="mermaid">
@@ -211,31 +215,98 @@ sequenceDiagram
   participant L as LLM
   participant M as HR-MCP
   participant V as Backend-v2
-  participant T as Tenant DB
+  participant T as Tenant DB (MySQL)
 
   FE->>E: POST /chat/ask — question + identity headers
-  E->>L: understand the question (intent · which tables)
-  E->>M: get_schema — "what can I query?"
-  M->>V: fetch schema
-  V-->>M: tables + columns
-  M-->>E: schema
-  E->>L: write the SQL
-  E->>M: run the SQL (run_query / run_report)
-  M->>V: forward (service key + user token)
+  Note over E: guard_input — injection screen (regex EN+AR · no LLM)<br/>+ quota check · load history
+  E->>L: classify_intent — report_query / chart
+  Note over E,L: match_report judge → NONE here · EXACT/PARTIAL is Flow B<br/>chart_request and prefer_custom skip the judge
+  E->>L: enhance_question — clarify / rewrite
+  E->>M: select_tables → get_schema
+  M->>V: GET /internal/ai/schema
+  V-->>M: schema
+  M-->>E: tables · schema_text · semantics
+  E->>L: pick the relevant tables (cheap menu)
+  Note over E: retrieve_examples — embed (Ollama bge-m3) → pgvector nearest golden queries
+  E->>L: generate_sql — schema + semantics + few-shot
+  Note over E: static pre-check (sqlglot) — SELECT-only · allow-list · blocked columns
+  E->>M: execute → create_report (default) · run_query (chart only)
+  M->>V: POST /internal/ai/report · sql + format
+  V->>V: SQL safety pipeline — validate · scope-inject · read-only
   V->>T: execute · read-only · tenant-scoped
   T-->>V: rows
-  V-->>M: result + small preview
-  M-->>E: result
-  E->>L: summarize the result
+  V-->>M: ≤10-row preview + report handle
+  M-->>E: preview + handle (file)
+  Note over E,V: sql_rejected → bounded self-correction → generate_sql (≤ 3)
+  E->>L: summarize — LLM prose (scalar) / localized one-liner (report)
   E-->>FE: reply + table / chart / download link
     </pre>
-    <div class="caption">the engine reaches v2 <b>only</b> through HR-MCP · v2 executes on the tenant DB and returns rows + a preview · the engine summarizes and replies</div>
+    <div class="caption">flow a · five distinct LLM calls (intent · enhance · table-select · generate · summarize) · engine reaches v2 only through HR-MCP · default execution is create_report (file); run_query is the chart-only branch</div>
   </div>
+
+  <div class="note teal"><b>The fork:</b> <code>classify_intent</code> sends report questions to the <code>match_report</code> judge.
+  <b>NONE</b> → Flow&nbsp;A above (write SQL). <b>EXACT / PARTIAL</b> → <a href="#flow-redirect" style="color:var(--teal)">Flow&nbsp;B</a>
+  (redirect to a prebuilt report). <code>chart_request</code> and <code>prefer_custom</code> bypass the judge straight into Flow&nbsp;A.</div>
 </section>
 
-<!-- ============================ 5 · PIPELINE ============================ -->
+<!-- ===================== 3 · FLOW B — REDIRECT / COMPANION ===================== -->
+<section id="flow-redirect">
+  <h2><span class="num">03</span>Flow B — report-redirect &amp; companion <span style="color:var(--ink-faint);font-weight:400;font-size:1rem">· routes you to a prebuilt report</span></h2>
+  <p class="sub">The other answer mode. When the question maps to a <b>predefined report</b>, the engine does <b>not</b>
+  generate SQL — it routes the user to that report with its parameters pre-filled. The only backend call is
+  <code>get_report_catalog</code>; there is <b>no SQL and no tenant-DB execution</b>. A confidence judge
+  (<code>match_report</code>) sets the tier: <b>EXACT</b> → redirect, <b>PARTIAL</b> → offer the report <em>and</em>
+  a custom build (the <b>companion</b> offer), <b>NONE</b> → fall through to <a href="#seq-life" style="color:var(--amber)">Flow&nbsp;A</a>.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Client / FE
+  participant E as AI Engine
+  participant L as LLM
+  participant M as HR-MCP
+  participant V as Backend-v2
+
+  FE->>E: POST /chat/ask — e.g. "attendance summary last month"
+  Note over E: guard_input (no LLM) · load history
+  E->>M: load_report_catalog → get_report_catalog (once / turn)
+  M->>V: GET /internal/ai/report-catalog-combined
+  V-->>M: catalog
+  M-->>E: reports (accessible flag) + per-report parameters
+  E->>L: classify_intent → report_query / report_redirect
+  E->>L: match_report — judge question vs the catalog menu
+  Note over E,L: confidence = EXACT · PARTIAL · NONE<br/>engine (not the model) enforces access
+
+  alt EXACT — one accessible report fits
+    E->>E: resolve_params (from catalog) · slot_fill
+    opt required inputs missing
+      E-->>FE: CLARIFY — ask for the missing param(s) · pending saved
+      FE->>E: user answers (structured inputs)
+      Note over E: resume — pending + inputs → pinned report (no re-match · no LLM)
+    end
+    E->>E: build_redirect — target route + bound params
+    E-->>FE: REDIRECT — open the report page · NO SQL · NO tenant DB
+  else EXACT — user lacks the report permission
+    E-->>FE: ACCESS_DENIED — parity message · no redirect · no SQL
+  else PARTIAL — related, not a full fit (companion)
+    E-->>FE: offer_choice — open the related report AND offer a custom build
+  else NONE — nothing prebuilt fits
+    Note over E,L: fall through to Flow A — text→SQL
+  end
+    </pre>
+    <div class="caption">flow b · the only backend call is get_report_catalog — no run_query/run_report, no tenant-DB hit · EXACT redirects (slot-filling first), PARTIAL offers report + custom (companion), NONE → Flow A</div>
+  </div>
+
+  <div class="note"><b>Why redirect instead of generating SQL?</b> A predefined report is permission-scoped, parameterized
+  and already optimized in v2. On an exact match the engine sends the user straight there — filling required parameters
+  first and asking only for what's missing — instead of re-deriving SQL. Denied reports still <em>match</em> (so a
+  denied question gets the parity <code>ACCESS_DENIED</code> reply) but are never offered as a selectable choice.</div>
+</section>
+
+<!-- ============================ 4 · PIPELINE ============================ -->
 <section id="pipeline">
-  <h2><span class="num">03</span>Inside the engine — the LangGraph pipeline</h2>
+  <h2><span class="num">04</span>Inside the engine — the unified LangGraph pipeline</h2>
   <p class="sub">What happens between “question in” and “blocks out”. Deterministic guards run before any LLM call;
   refusals are hardcoded EN/AR text (model-agnostic — nothing to jailbreak). The full node-by-node story lives in
   <code>ai-engine-flow.html</code>.</p>
@@ -247,19 +318,29 @@ flowchart TB
   classDef llm fill:#1b2129,stroke:#7aa2d6,color:#e6e8eb
   classDef det fill:#161b22,stroke:#5fb8a8,color:#e6e8eb
   classDef out fill:#1c2419,stroke:#76b58a,color:#e6e8eb
+  classDef redir fill:#211b2b,stroke:#a98fd6,color:#e6e8eb
 
   Q([user question]) --> G["guard_input<br/>injection screen · regex EN+AR · no LLM"]:::guard
   G -- blocked --> R1["fixed refusal → END"]:::guard
-  G -- ok --> I["classify_intent (LLM)"]:::llm
+  G -- ok --> LRC["load_report_catalog<br/>get_report_catalog · once / turn"]:::det
+  LRC --> I["classify_intent (LLM)"]:::llm
 
-  I -- out_of_scope<br/>politics · sexual · poems ·<br/>general knowledge --> R2["refuse_out_of_scope<br/>fixed EN/AR refusal · no LLM → END"]:::guard
-  I -- conversational /<br/>clarification --> C["conversational reply (LLM)<br/>scope-hardened prompt → END"]:::llm
-  I -- report_query /<br/>chart_request --> EQ["enhance_question (LLM)"]:::llm
+  I -- out_of_scope --> R2["refuse_out_of_scope<br/>fixed EN/AR · no LLM → END"]:::guard
+  I -- "conversational / clarification" --> C["conversational reply (LLM) → END"]:::llm
+  I -- "report_query / report_redirect" --> MR{"match_report — judge (LLM)<br/>EXACT · PARTIAL · NONE"}:::redir
+  I -- "chart_request / prefer_custom" --> EQ
 
-  EQ --> ST["select_tables (LLM, cheap menu)"]:::llm
+  MR -- "EXACT · accessible" --> RP["resolve_params → slot_fill"]:::redir
+  RP -- "inputs missing" --> CLR["CLARIFY — ask params<br/>save pending → END"]:::redir
+  RP -- complete --> BR["build_redirect → REDIRECT → END"]:::redir
+  MR -- "EXACT · denied" --> AD["ACCESS_DENIED · parity<br/>no SQL → END"]:::guard
+  MR -- "PARTIAL (companion)" --> OC["offer_choice<br/>report + custom build → END"]:::redir
+  MR -- NONE --> EQ["enhance_question (LLM)"]:::llm
+
+  EQ --> ST["select_tables (LLM, cheap menu) · get_schema"]:::llm
   ST --> RAG["retrieve_examples<br/>golden queries · pgvector RAG"]:::det
   RAG --> GS["generate_sql (LLM)<br/>schema + semantics + few-shot"]:::llm
-  GS --> PRE["static pre-check (sqlglot)<br/>SELECT-only · allowlist · blocked columns"]:::det
+  GS --> PRE["static pre-check (sqlglot)<br/>SELECT-only · allow-list · blocked columns"]:::det
   PRE --> EX{execute node}
 
   EX -- chart request --> IQ["run_query via QueryPort<br/>rows inline ≤1000"]:::det
@@ -267,19 +348,19 @@ flowchart TB
   EX -- "sql_rejected (retryable)" --> GS
 
   IQ --> SUM
-  CR --> SUM["summarize (LLM over ≤10 preview rows)"]:::llm
+  CR --> SUM["summarize (LLM over ≤10 preview)<br/>or localized one-liner"]:::llm
   SUM --> GR["grounding check · deterministic<br/>every number traces to data (AR/EN digits)"]:::det
   GR --> SAFE["reply safety + brevity rails"]:::det
   SAFE --> B["assemble blocks<br/>text · table · chart · file · redirect<br/>+ metadata.report_type"]:::out
   B --> END([AskResponse → FE])
     </pre>
-    <div class="caption">engine pipeline · the sql_rejected loop is bounded (sql_max_retries = 3) · empty results return a friendly localized message</div>
+    <div class="caption">unified pipeline · violet = Flow B (redirect / companion) · blue+green = Flow A (text→SQL) · match_report is the fork · the sql_rejected loop is bounded (sql_max_retries = 3)</div>
   </div>
 </section>
 
 <!-- ============================ 6 · RUNTIME ============================ -->
 <section id="runtime">
-  <h2><span class="num">04</span>Ports &amp; runtime — where everything lives</h2>
+  <h2><span class="num">05</span>Ports &amp; runtime — where everything lives</h2>
   <p class="sub">Dev topology on one machine. The three Laravel/Python services are independent repos; v2 runs in the
   dev-env docker stack, the engine and MCP run as local processes with their own docker-compose for data stores.</p>
 
@@ -306,7 +387,7 @@ flowchart TB
 
 <!-- ============================ 7 · AUTH ============================ -->
 <section id="auth">
-  <h2><span class="num">05</span>Auth matrix — what credential crosses each hop</h2>
+  <h2><span class="num">06</span>Auth matrix — what credential crosses each hop</h2>
   <p class="sub">The chain has <b>two identity gates</b>. The engine's <b>first gate</b> (optional, <code>IDENTITY_VALIDATION_ENABLED</code>)
   validates the end-user token against <b>IdentityCore</b> before any work runs; <b>Backend-v2</b> is the authoritative
   <b>second gate</b> downstream. Three distinct credentials travel the chain — keep the <em>user</em> token separate from the
@@ -327,7 +408,7 @@ flowchart TB
 
 
 <footer>
-  Idaratech · AI Reports — system architecture reference · compiled 2026-06-10 from
+  Idaratech · AI Reports — system architecture reference · compiled 2026-06-10 · rev 2026-06-30 (added Flow B · validated Flow A · tool list) from
   idaratech-ai-engine · idaratech-hr-mcp · backend-v2 (AiChatAssistance / ReportsManagement) ·
   diagrams: Mermaid.js · companion docs: ai-engine-flow.html (engine internals) · guardrails-reference.html · authorization-reference.html
 </footer>
